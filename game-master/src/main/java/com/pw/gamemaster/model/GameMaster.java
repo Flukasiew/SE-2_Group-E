@@ -33,7 +33,7 @@ public class GameMaster {
 
     }
 
-    public GameMasterConfiguration loadConfigurationFromJson(String path){
+    public GameMasterConfiguration loadConfigurationFromJson(String path) {
         return null;
     }
 
