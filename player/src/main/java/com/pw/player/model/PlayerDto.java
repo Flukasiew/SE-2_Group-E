@@ -10,4 +10,8 @@ public class PlayerDto {
     public Team.TeamColor playerTeamColor;
     public Player.ActionType playerAction;
     public Position playerPosition;
+
+    public PlayerDto() {
+
+    }
 }
