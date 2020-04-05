@@ -17,12 +17,12 @@ import java.util.UUID;
 public class GameMasterBoard extends Board {
     private Set<Position> piecesPosition;
     public HashSet<UUID> piecesTested;
-    // the protected modifiers are probably wrong, need to confirm
-    protected Cell[][] cellsGrid;
-    protected int goalAreaHeight;
-    protected int taskAreaHeight;
-    protected int boardHeight = 2 * goalAreaHeight + taskAreaHeight;
-    protected int boardWidth;
+    // since these values are to be inherited, im not sure if theyre needed here, someone confirm pls
+    //    public Cell[][] cellsGrid;
+    //    public int goalAreaHeight;
+    //    public int taskAreaHeight;
+    //    public int boardHeight = 2 * goalAreaHeight + taskAreaHeight;
+    //    public int boardWidth;
 
     public enum PlacementResult {
         CORRECT,
