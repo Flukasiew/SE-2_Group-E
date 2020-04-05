@@ -4,7 +4,7 @@ public class Position {
     public int x;
     public int y;
 
-    public void ChangePosition(Direction direction) {
+    public Position() {
 
     }
 
@@ -14,4 +14,9 @@ public class Position {
         LEFT,
         RIGHT
     }
+
+    public void changePosition(Direction direction) {
+
+    }
+
 }

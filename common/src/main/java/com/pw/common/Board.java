@@ -7,6 +7,7 @@ public class Board {
     public int boardHeight;
     public int boardWidth;
 
+    // ??? not sure about this one
     public Board() {
 
     }

@@ -5,11 +5,6 @@ public class Team {
     public TeamRole role;
     public int size;
 
-    public Team(TeamRole teamRole, TeamColor teamColor, int size) {
-        this.color = teamColor;
-        this.size = size;
-        this.role = teamRole;
-    }
 
     public enum TeamRole {
         LEADER,
@@ -19,6 +14,12 @@ public class Team {
     public enum TeamColor {
         RED,
         BLUE
+    }
+
+    public Team(TeamRole teamRole, TeamColor teamColor, int size) {
+        this.color = teamColor;
+        this.size = size;
+        this.role = teamRole;
     }
 
     public TeamColor getColor() {

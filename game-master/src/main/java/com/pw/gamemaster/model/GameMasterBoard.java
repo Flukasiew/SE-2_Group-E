@@ -17,10 +17,11 @@ import java.util.UUID;
 public class GameMasterBoard extends Board {
     private Set<Position> piecesPosition;
     public HashSet<UUID> piecesTested;
+    // the protected modifiers are probably wrong, need to confirm
     protected Cell[][] cellsGrid;
     protected int goalAreaHeight;
     protected int taskAreaHeight;
-    protected int boardHeight = 2*goalAreaHeight+taskAreaHeight;
+    protected int boardHeight = 2 * goalAreaHeight + taskAreaHeight;
     protected int boardWidth;
 
     public enum PlacementResult {
@@ -29,7 +30,7 @@ public class GameMasterBoard extends Board {
     }
 
     public GameMasterBoard() {
-
+        super();
     }
 
     public Position playerMove(PlayerDto playerDto, Position.Direction direction) {
