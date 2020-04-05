@@ -11,12 +11,12 @@ public class Team {
         this.role = teamRole;
     }
 
-    enum TeamRole {
+    public enum TeamRole {
         LEADER,
         MEMBER
     }
 
-    enum TeamColor {
+    public enum TeamColor {
         RED,
         BLUE
     }
