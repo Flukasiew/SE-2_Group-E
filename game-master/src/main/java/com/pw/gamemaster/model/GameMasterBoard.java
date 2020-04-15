@@ -30,19 +30,22 @@ public class GameMasterBoard extends Board {
     }
 
     public GameMasterBoard() {
+
         super();
     }
 
     public Position playerMove(PlayerDto playerDto, Position.Direction direction) {
-        return null;
+        throw new RuntimeException("not implemented");
     }
 
     public Cell.CellState takePiece(Position position) {
-        return null;
+
+        throw new RuntimeException("not implemented");
     }
 
     public Position generatePiece(double chance) {
-        return null;
+
+        throw new RuntimeException("not implemented");
     }
 
     public void setGoal(Position position) {
@@ -50,22 +53,27 @@ public class GameMasterBoard extends Board {
     }
 
     public PlacementResult placePiece(PlayerDto playerDto) {
-        return null;
+
+        throw new RuntimeException("not implemented");
     }
 
     public Position placePlayer(PlayerDto playerDto) {
-        return null;
+
+        throw new RuntimeException("not implemented");
     }
 
     public boolean checkWinCondition(Team.TeamColor teamColor) {
-        return false;
+
+        throw new RuntimeException("not implemented");
     }
 
     public List<Field> discover(Position position) {
-        return null;
+
+        throw new RuntimeException("not implemented");
     }
 
     public int manhattanDistanceTwoPoints(Point pointA, Point pointB) {
-        return 0;
+
+        throw new RuntimeException("not implemented");
     }
 }

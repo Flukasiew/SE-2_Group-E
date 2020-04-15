@@ -1,5 +1,8 @@
 package com.pw.player.model;
 
+import lombok.Data;
+
+@Data
 public class Team {
     public TeamColor color;
     public TeamRole role;
@@ -22,23 +25,8 @@ public class Team {
         this.role = teamRole;
     }
 
-    public TeamColor getColor() {
-        return color;
-    }
-
-    public void setColor(TeamColor teamColor) {
-        this.color = teamColor;
-    }
-
-    public TeamRole getRole() {
-        return role;
-    }
-
-    public void setRole(TeamRole teamRole) {
-        this.role = teamRole;
-    }
-
     public boolean isLeader() {
+
         return role == TeamRole.LEADER;
     }
 }

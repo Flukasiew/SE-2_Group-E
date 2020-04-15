@@ -34,7 +34,7 @@ public class GameMaster {
     }
 
     public GameMasterConfiguration loadConfigurationFromJson(String path) {
-        return null;
+        throw new RuntimeException("not implemented");
     }
 
     public void saveConfigurationToJson(String path) {

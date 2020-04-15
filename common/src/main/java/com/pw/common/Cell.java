@@ -1,7 +1,9 @@
 package com.pw.common;
 
 import javafx.geometry.Pos;
+import lombok.Data;
 
+@Data
 public class Cell {
     public CellState cellState;
     public int distance;
@@ -17,17 +19,5 @@ public class Cell {
 
     public Cell() {
 
-    }
-
-    public CellState getCellState() {
-        return cellState;
-    }
-
-    public void setCellState(CellState cellState) {
-
-    }
-
-    public Position getField(Position position) {
-        return null; // implement
     }
 }

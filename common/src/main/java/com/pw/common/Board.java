@@ -1,5 +1,8 @@
 package com.pw.common;
 
+import lombok.Data;
+
+@Data
 public class Board {
     public Cell[][] cellsGrid;
     public int goalAreaHeight;
@@ -12,20 +15,12 @@ public class Board {
 
     }
 
-    public Field getField(Position position) {
-        return null;
-    }
-
     public void updateField(Field field) {
 
     }
 
     private void updateCell(Cell cell, Position position) {
 
-    }
-
-    private Cell getCell(Position position) {
-        return null;
     }
 
     private void initializeCellsGrid() {
