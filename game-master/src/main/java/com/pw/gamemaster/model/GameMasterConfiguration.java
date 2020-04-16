@@ -18,8 +18,4 @@ public class GameMasterConfiguration {
     public int DelayTest;
     public int DelayPick;
     public int DelayPlace;
-
-    public GameMasterConfiguration() {
-
-    }
 }

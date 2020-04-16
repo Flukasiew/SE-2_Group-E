@@ -15,16 +15,6 @@ public class GameMaster {
     private List<UUID> teamRedGuids;
     private List<UUID> teamBlueGuids;
 
-    public enum GameMasterStatus {
-        ACTIVE,
-        FINISHED,
-        IDLE
-    }
-
-    public GameMaster() {
-
-    }
-
     public void startGame() {
 
     }

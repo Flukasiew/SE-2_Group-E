@@ -1,4 +1,4 @@
-package com.pw.common;
+package com.pw.common.model;
 
 import lombok.Data;
 
@@ -9,11 +9,6 @@ public class Board {
     public int taskAreaHeight;
     public int boardHeight;
     public int boardWidth;
-
-    // ??? not sure about this one
-    public Board() {
-
-    }
 
     public void updateField(Field field) {
 

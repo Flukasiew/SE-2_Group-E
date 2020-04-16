@@ -1,6 +1,5 @@
-package com.pw.common;
+package com.pw.common.model;
 
-import javafx.geometry.Pos;
 import lombok.Data;
 
 @Data

@@ -1,4 +1,4 @@
-package com.pw.common;
+package com.pw.common.model;
 
 public class Position {
     public int x;

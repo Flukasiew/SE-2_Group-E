@@ -1,7 +1,8 @@
 package com.pw.player.model;
 
-import com.pw.common.Board;
-import com.pw.common.Position;
+import com.pw.common.model.ActionType;
+import com.pw.common.model.Board;
+import com.pw.common.model.Position;
 
 import java.net.InetAddress;
 import java.util.UUID;
@@ -18,25 +19,6 @@ public class Player {
     public boolean piece;
     private UUID playerGuid;
     private PlayerState playerState;
-
-    public enum ActionType {
-        MOVE,
-        PICKUP,
-        TEST,
-        PLACE,
-        DESTROY,
-        SEND
-    }
-
-    public enum PlayerState {
-        INITIALIZING,
-        ACTIVE,
-        COMPLETED
-    }
-
-    public Player() {
-
-    }
 
     public void listen() {
 
