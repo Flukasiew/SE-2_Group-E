@@ -16,7 +16,20 @@ public class Position {
     }
 
     public void changePosition(Direction direction) {
-
+        switch(direction) {
+            case UP:
+                y += 1;
+                break;
+            case DOWN:
+                y -= 1;
+                break;
+            case LEFT:
+                x-=1;
+                break;
+            case RIGHT:
+                x+=1;
+                break;
+        }
     }
 
 }
