@@ -8,6 +8,12 @@ public class Position {
 
     }
 
+    public Position(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+
     public enum Direction {
         UP,
         DOWN,
@@ -18,10 +24,10 @@ public class Position {
     public void changePosition(Direction direction) {
         switch(direction) {
             case UP:
-                y += 1;
+                y -= 1;
                 break;
             case DOWN:
-                y -= 1;
+                y += 1;
                 break;
             case LEFT:
                 x-=1;

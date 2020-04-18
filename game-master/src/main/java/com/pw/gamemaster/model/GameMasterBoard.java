@@ -22,39 +22,48 @@ public class GameMasterBoard extends Board {
 
     public GameMasterBoard(int boardWidth, int goalAreaHeight, int taskAreaHeight) {
         super(boardWidth, goalAreaHeight, taskAreaHeight);
-        this.piecesTested = new HashSet<UUID>();
-        this.piecesPosition = new HashSet<Position>();
+        this.piecesTested = new HashSet<>();
+        this.piecesPosition = new HashSet<>();
     }
 
     public Position playerMove(PlayerDTO playerDTO, Position.Direction direction) {
+        Position start_pos = new Position(playerDTO.playerPosition.x, playerDTO.playerPosition.y);
         playerDTO.playerPosition.changePosition(direction);
-        Position error_position = new Position();
-        error_position.x =-1;
-        error_position.y =-1;
 
         if(playerDTO.playerPosition.x<0 || playerDTO.playerPosition.x>=this.boardWidth ||
         playerDTO.playerPosition.y<0 || playerDTO.playerPosition.y>=this.boardHeight)
         {
-            return error_position;
+            return null;
         }
 
         if (playerDTO.playerTeamColor == TeamColor.BLUE)
         {
-            if (playerDTO.playerPosition.y>=this.taskAreaHeight) return playerDTO.playerPosition;
-            else return error_position;
+            if (playerDTO.playerPosition.y>=this.taskAreaHeight)
+            {
+                this.getField(playerDTO.playerPosition).fieldColor = Field.FieldColor.BLUE;
+                this.getField(start_pos).fieldColor = Field.FieldColor.GRAY;
+                return playerDTO.playerPosition;
+            }
+            else return null;
         }
         else
         {
-            if (playerDTO.playerPosition.y<=this.boardHeight - this.taskAreaHeight) return playerDTO.playerPosition;
-            else return error_position;
+            if (playerDTO.playerPosition.y<=this.boardHeight - this.taskAreaHeight) {
+                {
+                    this.getField(playerDTO.playerPosition).fieldColor = Field.FieldColor.RED;
+                    this.getField(start_pos).fieldColor = Field.FieldColor.GRAY;
+                    return playerDTO.playerPosition;
+                }
+            }
+
+            else return null;
         }
     }
 
     public Cell.CellState takePiece(Position position) {
         Cell.CellState init_state =  this.getField(position).cell.cellState;
 
-        if(this.getField(position).cell.cellState== Cell.CellState.PIECE ||
-                this.getField(position).cell.cellState== Cell.CellState.VALID){
+        if(this.getField(position).cell.cellState== Cell.CellState.PIECE){
             this.cellsGrid[position.x][position.y].cellState = Cell.CellState.EMPTY;
             for (Position p : this.piecesPosition){
                 if(p.x == position.x && p.y == position.y) {
@@ -68,16 +77,15 @@ public class GameMasterBoard extends Board {
     }
 
     public Position generatePiece() {
-        Position new_piece_position = new Position();
+        Position new_piece_position;
 
         Position[] pos = new Position[this.boardWidth*(this.boardHeight-2*this.taskAreaHeight)];
         for (int i = 0; i < this.boardWidth; i++) {
-            for(int j = 0; j < this.boardHeight-2*this.taskAreaHeight; j++)
-            {
+            for (int j = 0; j < this.boardHeight - 2 * this.taskAreaHeight; j++) {
                 Position temp = new Position();
                 temp.x = i;
-                temp.y = j+this.taskAreaHeight;
-                pos[i*(this.boardHeight-2*this.taskAreaHeight)+j] = temp;
+                temp.y = j + this.taskAreaHeight;
+                pos[i * (this.boardHeight - 2 * this.taskAreaHeight) + j] = temp;
 
             }
         }
@@ -88,14 +96,13 @@ public class GameMasterBoard extends Board {
             for (Position piece : piecesPosition) {
                 if(piece.x != new_piece_position.x || piece.y != new_piece_position.y){
                     piecesPosition.add(new_piece_position);
+                    this.getField(new_piece_position).cell.cellState = Cell.CellState.PIECE;
                     return new_piece_position;
                 }
             }
         }
 
-        new_piece_position.x = -1;
-        new_piece_position.y =-1;
-        return new_piece_position;
+        return null;
     }
 
     public void setGoal(Position position) {
@@ -110,9 +117,6 @@ public class GameMasterBoard extends Board {
             return PlacementResult.CORRECT;
         }
         else {
-            if (current_field.cell.cellState == Cell.CellState.EMPTY) {
-
-            }
                 return PlacementResult.POINTLESS;
         }
     }
@@ -136,12 +140,53 @@ public class GameMasterBoard extends Board {
     }
 
     public boolean checkWinCondition(TeamColor teamColor) {
-            throw new RuntimeException("Not implemented");
+        if(teamColor == TeamColor.BLUE) {
+            for(int i=0;i<this.boardWidth;i++)
+            {
+                for(int j=0;j<this.taskAreaHeight;j++)
+                {
+                    Position temp = new Position(i,j);
+                    if(this.getField(temp).cell.cellState == Cell.CellState.GOAL) {
+                        int filled = 0;
+                        for (Position piece : piecesPosition) {
+                            if (i == piece.x && j == piece.y) {
+                                filled = 1;
+                                break;
+                            }
+                        }
+                        if(filled == 0) return false;
 
+                    }
+                }
+            }
+            return true;
+        }
+        else
+        {
+            for(int i=0;i<this.boardWidth;i++)
+            {
+                for(int j=this.boardHeight-this.taskAreaHeight;j<this.boardHeight;j++)
+                {
+                    Position temp = new Position(i,j);
+                    if(this.getField(temp).cell.cellState == Cell.CellState.GOAL) {
+                        int filled = 0;
+                        for (Position piece : piecesPosition) {
+                            if (i == piece.x && j == piece.y) {
+                                filled = 1;
+                                break;
+                            }
+                        }
+                        if(filled == 0) return false;
+
+                    }
+                }
+            }
+            return true;
+        }
     }
 
     public List<Field> discover(Position position) {
-        List<Field> discovered_fields = new ArrayList<Field>();
+        List<Field> discovered_fields = new ArrayList<>();
         for (int i=-1;i<=1;i++){
             for(int j=-1;j<=1;j++)
             {
