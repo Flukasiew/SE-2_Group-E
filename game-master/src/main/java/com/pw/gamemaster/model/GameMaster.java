@@ -5,7 +5,6 @@ import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.ActionType;
 import com.pw.common.model.Cell;
 import com.pw.common.model.Position;
-import javafx.geometry.Pos;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
