@@ -13,4 +13,12 @@ public class PlayerDTO {
     public TeamColor playerTeamColor;
     public ActionType playerAction;
     public Position playerPosition;
+
+    public PlayerDTO() {}
+
+    public PlayerDTO(UUID uuid, ActionType move) {
+
+        this.playerGuid = uuid;
+        this.playerAction = move;
+    }
 }
