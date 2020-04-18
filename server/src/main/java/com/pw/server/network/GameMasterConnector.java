@@ -32,6 +32,8 @@ public class GameMasterConnector {
     private PrintWriter writer;
     private BufferedReader reader;
 
+    private GameMasterReader gameMasterReader;
+
     public GameMasterConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<String> messages) {
         this.serverSocket = serverSocket;
         this.ioHandler = ioHandler;
@@ -60,7 +62,7 @@ public class GameMasterConnector {
 
     public void setup() throws IOException, GameMasterSetupException {
         GameSetupDTO gameSetupDTO = new GameSetupDTO(Action.setup);
-        writer.println(MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(gameSetupDTO));
+        writer.println(MAPPER.writeValueAsString(gameSetupDTO));
         LOGGER.info("Setup message sent to game master");
 
         String inputLine;
@@ -69,12 +71,17 @@ public class GameMasterConnector {
             if (gameSetupStatusDTO != null && gameSetupStatusDTO.getAction() == Action.setup) {
                 if (gameSetupStatusDTO.getStatus() == GameSetupStatus.OK) {
                     LOGGER.info("Game master returned OK status");
-                    new GameMasterReader(gameMasterSocket, ioHandler, messages).start();
+                    gameMasterReader = new GameMasterReader(gameMasterSocket, ioHandler, messages);
+                    gameMasterReader.start();
                     break;
                 } else if (gameSetupStatusDTO.getStatus() == GameSetupStatus.DENIED) {
                     throw new GameMasterSetupException("Game master returned DENIED setup status");
                 }
             }
         }
+    }
+
+    public void stopRunning() {
+        gameMasterReader.stopRunning();
     }
 }

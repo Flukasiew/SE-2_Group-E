@@ -14,9 +14,9 @@ import org.mockito.Mock;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
@@ -31,7 +31,7 @@ public class CommunicationServerTest {
 
     private CommunicationServer communicationServer;
     private int port = 1300;
-    private String endMessage = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE));
+    private String endMessage = MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE));
 
     @Mock
     private Factory factory;
@@ -50,7 +50,7 @@ public class CommunicationServerTest {
     @Mock
     private PrintWriter gameMasterWriter;
     @Mock
-    private ConcurrentMap<Integer, PrintWriter> playerWriters;
+    private Map<Integer, PrintWriter> playerWriters;
     @Mock
     private Queue<Integer> responseQueue;
 

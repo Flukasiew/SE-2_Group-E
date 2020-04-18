@@ -11,8 +11,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
@@ -35,7 +35,7 @@ public class PlayerConnectorTest {
     private BlockingQueue<PlayerMessage> messages;
 
     @Mock
-    private ConcurrentMap<Integer, PrintWriter> playerWriters;
+    private Map<Integer, PrintWriter> playerWriters;
 
     @Mock
     private Socket socket;

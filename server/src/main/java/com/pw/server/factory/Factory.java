@@ -8,8 +8,8 @@ import com.pw.server.network.PlayersConnector;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentMap;
 
 public class Factory {
     public GameMasterConnector createGameMasterConnector(ServerSocket serverSocket, IOHandler ioHandler,
@@ -19,7 +19,7 @@ public class Factory {
 
     public PlayersConnector createPlayersConnector(ServerSocket serverSocket, IOHandler ioHandler,
                                                    BlockingQueue<PlayerMessage> messages,
-                                                   ConcurrentMap<Integer, PrintWriter> playerWriters) {
+                                                   Map<Integer, PrintWriter> playerWriters) {
         return new PlayersConnector(serverSocket, ioHandler, messages, playerWriters);
     }
 

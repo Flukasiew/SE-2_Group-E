@@ -33,13 +33,10 @@ public class GameMasterConnectorTest {
 
     @Mock
     private ServerSocket serverSocket;
-
     @Mock
     private IOHandler ioHandler;
-
     @Mock
     private BlockingQueue<String> messages;
-
     @Mock
     private Socket socket;
 
@@ -78,7 +75,7 @@ public class GameMasterConnectorTest {
 
     @Test
     public void shouldSetupGameMaster() throws IOException, GameMasterSetupException {
-        String message = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(
+        String message = new ObjectMapper().writeValueAsString(
                 new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK));
 
         gameMasterConnector.setWriter(mock(PrintWriter.class));
@@ -94,7 +91,7 @@ public class GameMasterConnectorTest {
 
     @Test
     public void shouldThrowExceptionOnGameDeniedStatus() throws IOException {
-        String message = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(
+        String message = new ObjectMapper().writeValueAsString(
                 new GameSetupStatusDTO(Action.setup, GameSetupStatus.DENIED));
 
         gameMasterConnector.setWriter(mock(PrintWriter.class));

@@ -11,14 +11,18 @@ public class SimpleClient {
     private PrintWriter out;
     private BufferedReader in;
 
-    public void startConnection(String ip, int port) throws IOException {
-        clientSocket = new Socket(ip, port);
+    public void startConnection(String host, int port) throws IOException {
+        clientSocket = new Socket(host, port);
         out = new PrintWriter(clientSocket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
     public void sendMessage(String msg) throws IOException {
         out.println(msg);
+    }
+
+    public String receiveMessage() throws IOException {
+        return in.readLine();
     }
 
     public void stopConnection() throws IOException {

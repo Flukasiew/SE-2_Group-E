@@ -9,9 +9,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 @Data
 public class PlayersConnector extends Thread {
@@ -23,10 +26,12 @@ public class PlayersConnector extends Thread {
     private ServerSocket serverSocket;
     private IOHandler ioHandler;
     private BlockingQueue<PlayerMessage> messages;
-    private ConcurrentMap<Integer, PrintWriter> playerWriters;
+    private Map<Integer, PrintWriter> playerWriters;
+
+    private List<PlayerReader> playerReaders = newArrayList();
 
     public PlayersConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<PlayerMessage> messages,
-                            ConcurrentMap<Integer, PrintWriter> playerWriters) {
+                            Map<Integer, PrintWriter> playerWriters) {
         this.serverSocket = serverSocket;
         this.ioHandler = ioHandler;
         this.messages = messages;
@@ -69,5 +74,7 @@ public class PlayersConnector extends Thread {
         } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
         }
+
+        playerReaders.forEach(PlayerReader::stopRunning);
     }
 }

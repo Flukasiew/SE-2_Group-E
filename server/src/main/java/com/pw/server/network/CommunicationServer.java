@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Data
@@ -30,9 +30,12 @@ public class CommunicationServer {
     private BlockingQueue<PlayerMessage> messagesFromPlayers = new LinkedBlockingQueue<>();
     private BlockingQueue<String> messagesFromGameMaster = new LinkedBlockingQueue<>();
 
+    private PlayersConnector playersConnector;
+    private GameMasterConnector gameMasterConnector;
+
     private IOHandler ioHandler = new IOHandler();
     private PrintWriter gameMasterWriter;
-    private ConcurrentMap<Integer, PrintWriter> playerWriters = new ConcurrentHashMap<>();
+    private Map<Integer, PrintWriter> playerWriters = new ConcurrentHashMap<>();
 
     private Queue<Integer> responseQueue = new LinkedList<>();
     private Boolean endGame = false;
@@ -55,7 +58,7 @@ public class CommunicationServer {
     }
 
     private void setupGameMaster(ServerSocket serverSocket) throws Exception {
-        GameMasterConnector gameMasterConnector = factory.createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster);
+        gameMasterConnector = factory.createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster);
         gameMasterConnector.connect();
         gameMasterConnector.setup();
         gameMasterWriter = gameMasterConnector.getWriter();
@@ -64,7 +67,7 @@ public class CommunicationServer {
     }
 
     private void setupPlayers(ServerSocket serverSocket) {
-        PlayersConnector playersConnector = factory.createPlayersConnector(serverSocket, ioHandler, messagesFromPlayers, playerWriters);
+        playersConnector = factory.createPlayersConnector(serverSocket, ioHandler, messagesFromPlayers, playerWriters);
         playersConnector.start();
 
         LOGGER.info("Players setup initiated");
@@ -82,7 +85,10 @@ public class CommunicationServer {
             }
         }
 
-        LOGGER.info("Relay messages ended");
+        gameMasterConnector.stopRunning();
+        playersConnector.stopRunning();
+
+        LOGGER.info("Relaying messages ended");
     }
 
     private void handleMessageFromPlayer(PlayerMessage message) {
@@ -101,6 +107,7 @@ public class CommunicationServer {
             endMessage = false;
         }
         if (endMessage && gameMessageEndDTO != null) {
+            LOGGER.info("End game message received");
             endGame = true;
             return;
         }

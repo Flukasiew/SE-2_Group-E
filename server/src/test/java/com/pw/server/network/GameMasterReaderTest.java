@@ -26,7 +26,6 @@ public class GameMasterReaderTest {
     private IOHandler ioHandler;
     @Mock
     private BlockingQueue<String> messages;
-
     @Mock
     private InputStream inputStream;
     @Mock

@@ -28,7 +28,6 @@ public class PlayerReaderTest {
     private IOHandler ioHandler;
     @Mock
     private BlockingQueue<PlayerMessage> messages;
-
     @Mock
     private InputStream inputStream;
     @Mock
