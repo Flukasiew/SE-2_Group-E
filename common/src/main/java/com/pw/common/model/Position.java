@@ -8,6 +8,11 @@ public class Position {
 
     }
 
+    public Position(int i, int i1) {
+        this.x = i;
+        this.y = i1;
+    }
+
     public enum Direction {
         UP,
         DOWN,

@@ -1,5 +1,9 @@
 package com.pw.gamemaster;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pw.common.model.Cell;
+import com.pw.common.model.Field;
+import com.pw.common.model.Position;
 import com.pw.gamemaster.model.GameMaster;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -28,9 +32,15 @@ public class GameMasterApp {
 		double meh = (Double)jsonObject.get("shamProbability");
 		int meh2 = ((Long)jsonObject.get("maxTeamSize")).intValue();
 		System.out.println(meh2);*/
-		GameMaster xd = new GameMaster();
-		xd.loadConfigurationFromJson("gmconf.json");
-		String path = "C:/Users/sz/IdeaProjects/SE-2_Group-E/test.json";
-		xd.saveConfigurationToJson(path);
+//		GameMaster xd = new GameMaster();
+//		xd.loadConfigurationFromJson("gmconf.json");
+//		String path = "C:/Users/sz/IdeaProjects/SE-2_Group-E/test.json";
+//		xd.saveConfigurationToJson(path);
+//
+//		Field test = new Field(new Position(0, 1), new Cell());
+//		ObjectMapper objectMapper = new ObjectMapper();
+//		JSONObject obj = new JSONObject();
+//		obj.put("xd", objectMapper.writeValueAsString(test));
+//		System.out.println(obj);
 	}
 }

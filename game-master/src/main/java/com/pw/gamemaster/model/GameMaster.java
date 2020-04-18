@@ -1,15 +1,18 @@
 package com.pw.gamemaster.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.ActionType;
 import com.pw.common.model.Cell;
+import com.pw.common.model.Field;
 import com.pw.common.model.Position;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.management.RuntimeErrorException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -33,6 +36,29 @@ public class GameMaster {
 
     public void startGame() {
 
+    }
+
+    public void setupGame() {
+        this.board = new GameMasterBoard(this.configuration.boardWidth, this.configuration.boardGoalHeight, this.configuration.boardTaskHeight);
+        //this.status = GameMasterStatus.ACTIVE;
+        for (Point pt: this.configuration.predefinedGoalPositions) {
+            this.board.setGoal(new Position(pt.x, pt.y));
+        }
+        Position pos = new Position();
+        for (int i=0;i<this.configuration.initialPieces;i++) {
+            pos = this.board.generatePiece();
+            if(pos==null) {
+                break;
+            }
+        }
+
+//        int bluePlayersToPlace = teamBlueGuids.size();
+//        int redPlayersToPlace = teamRedGuids.size();
+//        for(int i=0;i<this.board.boardHeight || (bluePlayersToPlace<=0 && redPlayersToPlace<=0);i++) {
+//            for(int j=0;j<this.board.boardWidth || (bluePlayersToPlace<=0 && redPlayersToPlace<=0);j++) {
+//
+//            }
+//        }
     }
 
     private void listen() {
@@ -101,11 +127,11 @@ public class GameMaster {
     }
 
     // return type not specified in specifiaction
-    public void messageHandler(String message) throws ParseException {
+    public void messageHandler(String message) throws ParseException, JsonProcessingException {
         JSONParser jsonParser = new JSONParser();
         JSONObject msg = (JSONObject)jsonParser.parse(message);
         String action = (String)msg.get("action");
-        UUID uuid;
+        UUID uuid = UUID.fromString((String)msg.get("playerGuid"));
         String status = new String();
         switch (action) {
             // setup msgs
@@ -140,7 +166,6 @@ public class GameMaster {
                     default:
                         throw new IllegalStateException("Unexpected value: " + directionString); // implement new exception later on
                 }
-                uuid = UUID.fromString((String)msg.get("playerGuid"));
                 PlayerDTO playerDTO = playersDTO.get(uuid);
                 Position newPosition = board.playerMove(playerDTO, direction);
                 JSONObject positionJSON = new JSONObject();
@@ -157,7 +182,6 @@ public class GameMaster {
                 // implement sending msg back to player
                 break;
             case "pickup":
-                uuid = UUID.fromString((String)msg.get("playerGuid"));
                 Position pos = playersDTO.get(uuid).playerPosition;
                 Cell.CellState res = board.takePiece(pos);
                 if(res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
@@ -169,9 +193,39 @@ public class GameMaster {
                 // implement sending msg back to player
                 break;
             case "test":
-
+                Field xd = this.board.getField(playersDTO.get(uuid).playerPosition);
+                Cell.CellState state = xd.cell.cellState;
+                if(state != Cell.CellState.PIECE) {
+                    msg.put("status", "DENIED");
+                    msg.put("test", null);
+                } else {
+                    boolean boolStatus = Math.random() > (1-configuration.shamProbability);
+                    msg.put("status", boolStatus);
+                    msg.put("status", "OK");
+                }
+                // implement sending msg back
+                break;
+            case "place":
+                Field xdd = this.board.getField(playersDTO.get(uuid).playerPosition);
+                Cell.CellState state2 = xdd.cell.cellState;
+                if(state2 == Cell.CellState.PIECE) {
+                    msg.put("status", "DENIED");
+                    msg.put("placementResult", null);
+                    break;
+                }
+                PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
+                if(res2==PlacementResult.CORRECT) {
+                    msg.put("placementResult", "Correct");
+                } else if (res2==PlacementResult.POINTLESS) {
+                    msg.put("placementResult", "Pointless");
+                }
+                // implement sending msg back
                 break;
             case "discover":
+                List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
+                ObjectMapper mapper = new ObjectMapper();
+                msg.put("fields", mapper.writeValueAsString(fieldList));
+                // implement sending msg back
                 break;
 
             default:
