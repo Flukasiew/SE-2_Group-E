@@ -23,6 +23,13 @@ public class Cell {
         this.cellState = CellState.UNKNOWN;
     }
 
+    public Field getField(Position position ){
+        Field new_field = new Field();
+        new_field.cell=this;
+        new_field.position=position;
+        return new_field;
+    }
+
     public CellState getCellState() {
         return this.cellState;
     }
@@ -31,10 +38,8 @@ public class Cell {
         this.cellState = cellState;
     }
 
-    public Field getField(Position position ){
-        Field new_field = new Field();
-        new_field.cell=this;
-        new_field.position=position;
-        return new_field;
-    }
+    public int getDistance(){ return this.distance;}
+    public void setDistance(int distance){ this.distance = distance;}
+
+
 }

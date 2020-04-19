@@ -1,7 +1,6 @@
 package com.pw.common.model;
 
 import lombok.Data;
-
 @Data
 public class Board {
     public Cell[][] cellsGrid;
@@ -19,11 +18,11 @@ public class Board {
     }
 
     private Cell getCell(Position position){
-        return this.cellsGrid[position.x][position.y];
+        return this.cellsGrid[position.getX()][position.getY()];
     }
 
     private void updateCell(Cell cell, Position position) {
-        this.cellsGrid[position.x][position.y] = cell;
+        this.cellsGrid[position.getX()][position.getY()] = cell;
     }
 
 

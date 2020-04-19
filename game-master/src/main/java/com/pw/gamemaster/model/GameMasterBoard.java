@@ -27,31 +27,35 @@ public class GameMasterBoard extends Board {
     }
 
     public Position playerMove(PlayerDTO playerDTO, Position.Direction direction) {
-        Position start_pos = new Position(playerDTO.playerPosition.x, playerDTO.playerPosition.y);
+        Position start_pos = new Position(playerDTO.playerPosition.getX(), playerDTO.playerPosition.getY());
         playerDTO.playerPosition.changePosition(direction);
 
-        if(playerDTO.playerPosition.x<0 || playerDTO.playerPosition.x>=this.boardWidth ||
-        playerDTO.playerPosition.y<0 || playerDTO.playerPosition.y>=this.boardHeight)
+        if(playerDTO.playerPosition.getX()<0 || playerDTO.playerPosition.getX()>=this.boardWidth ||
+        playerDTO.playerPosition.getY()<0 || playerDTO.playerPosition.getY()>=this.boardHeight)
         {
+            return null;
+        }
+
+        if(this.getField(playerDTO.getPosition()).getFieldColor() != Field.FieldColor.GRAY){
             return null;
         }
 
         if (playerDTO.playerTeamColor == TeamColor.BLUE)
         {
-            if (playerDTO.playerPosition.y>=this.taskAreaHeight)
+            if (playerDTO.playerPosition.getY() <= this.boardHeight - this.goalAreaHeight)
             {
-                this.getField(playerDTO.playerPosition).fieldColor = Field.FieldColor.BLUE;
-                this.getField(start_pos).fieldColor = Field.FieldColor.GRAY;
+                this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.BLUE);
+                this.getField(start_pos).setFieldColor(Field.FieldColor.GRAY);
                 return playerDTO.playerPosition;
             }
             else return null;
         }
         else
         {
-            if (playerDTO.playerPosition.y<=this.boardHeight - this.taskAreaHeight) {
+            if (playerDTO.playerPosition.getY()<=this.goalAreaHeight) {
                 {
-                    this.getField(playerDTO.playerPosition).fieldColor = Field.FieldColor.RED;
-                    this.getField(start_pos).fieldColor = Field.FieldColor.GRAY;
+                    this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.RED);
+                    this.getField(start_pos).setFieldColor(Field.FieldColor.GRAY);
                     return playerDTO.playerPosition;
                 }
             }
@@ -61,12 +65,12 @@ public class GameMasterBoard extends Board {
     }
 
     public Cell.CellState takePiece(Position position) {
-        Cell.CellState init_state =  this.getField(position).cell.cellState;
+        Cell.CellState init_state =  this.getField(position).cell.getCellState();
 
-        if(this.getField(position).cell.cellState== Cell.CellState.PIECE){
-            this.cellsGrid[position.x][position.y].cellState = Cell.CellState.EMPTY;
+        if(this.getField(position).cell.getCellState() == Cell.CellState.PIECE){
+            this.cellsGrid[position.getX()][position.getY()].setCellState( Cell.CellState.EMPTY);
             for (Position p : this.piecesPosition){
-                if(p.x == position.x && p.y == position.y) {
+                if(p.x == position.getX() && p.y == position.getY()) {
                     this.piecesPosition.remove(p);
                     break;
                 }
@@ -79,13 +83,13 @@ public class GameMasterBoard extends Board {
     public Position generatePiece() {
         Position new_piece_position;
 
-        Position[] pos = new Position[this.boardWidth*(this.boardHeight-2*this.taskAreaHeight)];
+        Position[] pos = new Position[this.boardWidth*(this.boardHeight-2*this.goalAreaHeight)];
         for (int i = 0; i < this.boardWidth; i++) {
-            for (int j = 0; j < this.boardHeight - 2 * this.taskAreaHeight; j++) {
+            for (int j = 0; j < this.boardHeight - 2 * this.goalAreaHeight; j++) {
                 Position temp = new Position();
                 temp.x = i;
-                temp.y = j + this.taskAreaHeight;
-                pos[i * (this.boardHeight - 2 * this.taskAreaHeight) + j] = temp;
+                temp.y = j + this.goalAreaHeight;
+                pos[i * (this.boardHeight - 2 * this.goalAreaHeight) + j] = temp;
 
             }
         }
@@ -94,9 +98,9 @@ public class GameMasterBoard extends Board {
         for (Position p : pos) {
             new_piece_position = p;
             for (Position piece : piecesPosition) {
-                if(piece.x != new_piece_position.x || piece.y != new_piece_position.y){
+                if(piece.x != new_piece_position.getX() || piece.y != new_piece_position.getY()){
                     piecesPosition.add(new_piece_position);
-                    this.getField(new_piece_position).cell.cellState = Cell.CellState.PIECE;
+                    this.getField(new_piece_position).cell.setCellState(Cell.CellState.PIECE);
                     return new_piece_position;
                 }
             }
@@ -106,13 +110,13 @@ public class GameMasterBoard extends Board {
     }
 
     public void setGoal(Position position) {
-        this.getField(position).cell.cellState = Cell.CellState.GOAL;
+        this.getField(position).cell.setCellState(Cell.CellState.GOAL);
     }
 
     public PlacementResult placePiece(PlayerDTO playerDTO) {
         Field current_field = this.getField(playerDTO.playerPosition);
-        if (current_field.cell.cellState== Cell.CellState.GOAL){
-            current_field.cell.cellState= Cell.CellState.EMPTY;
+        if (current_field.cell.getCellState()== Cell.CellState.GOAL){
+            current_field.cell.setCellState(Cell.CellState.EMPTY);
             this.updateField(current_field);
             return PlacementResult.CORRECT;
         }
@@ -123,17 +127,14 @@ public class GameMasterBoard extends Board {
 
     public Position placePlayer(PlayerDTO playerDTO) {
         if(this.getField(playerDTO.playerPosition).fieldColor != Field.FieldColor.GRAY){
-            Position error_position = new Position();
-            error_position.x =-1;
-            error_position.y =-1;
-            return error_position;
+            return null;
         }
 
         switch(playerDTO.playerTeamColor){
             case BLUE:
-                this.getField(playerDTO.playerPosition).fieldColor = Field.FieldColor.BLUE;
+                this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.BLUE);
             case RED:
-                this.getField(playerDTO.playerPosition).fieldColor = Field.FieldColor.RED;
+                this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.RED);
         }
 
         return playerDTO.playerPosition;
@@ -143,13 +144,13 @@ public class GameMasterBoard extends Board {
         if(teamColor == TeamColor.BLUE) {
             for(int i=0;i<this.boardWidth;i++)
             {
-                for(int j=0;j<this.taskAreaHeight;j++)
+                for(int j=0;j<this.goalAreaHeight;j++)
                 {
                     Position temp = new Position(i,j);
-                    if(this.getField(temp).cell.cellState == Cell.CellState.GOAL) {
+                    if(this.getField(temp).cell.getCellState() == Cell.CellState.GOAL) {
                         int filled = 0;
                         for (Position piece : piecesPosition) {
-                            if (i == piece.x && j == piece.y) {
+                            if (i == piece.getX() && j == piece.getY()) {
                                 filled = 1;
                                 break;
                             }
@@ -165,13 +166,13 @@ public class GameMasterBoard extends Board {
         {
             for(int i=0;i<this.boardWidth;i++)
             {
-                for(int j=this.boardHeight-this.taskAreaHeight;j<this.boardHeight;j++)
+                for(int j=this.boardHeight-this.goalAreaHeight;j<this.boardHeight;j++)
                 {
                     Position temp = new Position(i,j);
-                    if(this.getField(temp).cell.cellState == Cell.CellState.GOAL) {
+                    if(this.getField(temp).cell.getCellState() == Cell.CellState.GOAL) {
                         int filled = 0;
                         for (Position piece : piecesPosition) {
-                            if (i == piece.x && j == piece.y) {
+                            if (i == piece.getY() && j == piece.y) {
                                 filled = 1;
                                 break;
                             }
@@ -191,9 +192,9 @@ public class GameMasterBoard extends Board {
             for(int j=-1;j<=1;j++)
             {
                 Position new_pos = new Position();
-                new_pos.x = position.x-i;
-                new_pos.y = position.y-j;
-                if(new_pos.x<this.boardWidth && new_pos.x>0 && new_pos.y>0 && new_pos.y<this.boardHeight){
+                new_pos.setX(position.getX()-i);
+                new_pos.setY(position.getY()-j);
+                if(new_pos.getX()<this.boardWidth && new_pos.getX()>0 && new_pos.y>0 && new_pos.getY()<this.boardHeight){
                     discovered_fields.add(this.getField(new_pos));
                 }
             }
