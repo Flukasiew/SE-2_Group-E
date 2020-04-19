@@ -2,17 +2,17 @@ package com.pw.server.network;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameMessageEndDTO;
+import com.pw.server.exception.UnrecognizedMessageException;
 import com.pw.server.factory.Factory;
 import com.pw.server.model.PlayerMessage;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -21,6 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class CommunicationServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommunicationServer.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String PLAYER_GUID = "playerGuid";
 
     private int portNumber;
     private String ipAddress;
@@ -35,9 +36,8 @@ public class CommunicationServer {
 
     private IOHandler ioHandler = new IOHandler();
     private PrintWriter gameMasterWriter;
-    private Map<Integer, PrintWriter> playerWriters = new ConcurrentHashMap<>();
+    private Map<String, PrintWriter> playerWriters = new ConcurrentHashMap<>();
 
-    private Queue<Integer> responseQueue = new LinkedList<>();
     private Boolean endGame = false;
 
     public CommunicationServer(int portNumber, String ipAddress) {
@@ -73,7 +73,7 @@ public class CommunicationServer {
         LOGGER.info("Players setup initiated");
     }
 
-    public void relayMessages() throws InterruptedException {
+    public void relayMessages() throws InterruptedException, UnrecognizedMessageException {
         LOGGER.info("Relaying messages started");
 
         while (!endGame) {
@@ -94,35 +94,49 @@ public class CommunicationServer {
     private void handleMessageFromPlayer(PlayerMessage message) {
         LOGGER.info("Sending message to game master");
 
-        responseQueue.add(message.getPlayerNumber());
         gameMasterWriter.println(message.getMessage());
     }
 
-    private void handleMessageFromGameMaster(String message) {
-        boolean endMessage = true;
-        GameMessageEndDTO gameMessageEndDTO = null;
+    private void handleMessageFromGameMaster(String message) throws UnrecognizedMessageException {
+        GameMessageEndDTO gameMessageEndDTO = getEndGameMessage(message);
+        if (gameMessageEndDTO != null) {
+            endGame(gameMessageEndDTO);
+            return;
+        }
+
+        Map<String, Object> messageJson;
+        try {
+            messageJson = MAPPER.readValue(message, Map.class);
+        } catch (IOException e) {
+            throw new UnrecognizedMessageException("Cannot parse JSON", e);
+        }
+
+        if (!messageJson.containsKey(PLAYER_GUID) || !(messageJson.get(PLAYER_GUID) instanceof String)) {
+            throw new UnrecognizedMessageException("Message does not contain player guid");
+        }
+
+        String playerGuid = (String) messageJson.get(PLAYER_GUID);
+        LOGGER.info("Sending message to player {}", playerGuid);
+
+        PrintWriter playerWriter = playerWriters.get(playerGuid);
+        if (playerWriter != null) {
+            playerWriter.println(message);
+        } else {
+            LOGGER.error("No writer for {} player", playerGuid);
+        }
+    }
+
+    private GameMessageEndDTO getEndGameMessage(String message) {
+        GameMessageEndDTO gameMessageEndDTO;
         try {
             gameMessageEndDTO = MAPPER.readValue(message, GameMessageEndDTO.class);
         } catch (Exception e) {
-            endMessage = false;
+            return null;
         }
-        if (endMessage && gameMessageEndDTO != null) {
-            LOGGER.info("End game message received");
-            endGame = true;
-            return;
-        }
+        return gameMessageEndDTO;
+    }
 
-        if (responseQueue.isEmpty()) {
-            LOGGER.error("No one to send the message to: {}", message);
-            return;
-        }
-
-        int playerNumber = responseQueue.poll();
-        LOGGER.info("Sending message to player {}", playerNumber);
-
-        PrintWriter playerWriter = playerWriters.get(playerNumber);
-        if (playerWriter != null) {
-            playerWriter.println(message);
-        }
+    private void endGame(GameMessageEndDTO gameMessageEndDTO) {
+        endGame = true;
     }
 }

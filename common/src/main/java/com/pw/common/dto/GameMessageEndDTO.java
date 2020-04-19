@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameMessageEndDTO {
-    Action action;
-    GameEndResult result;
+    private Action action;
+    private GameEndResult result;
 }

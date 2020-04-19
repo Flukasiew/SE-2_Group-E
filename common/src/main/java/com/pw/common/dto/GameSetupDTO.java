@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class GameSetupDTO {
-    Action action;
+    private Action action;
 }

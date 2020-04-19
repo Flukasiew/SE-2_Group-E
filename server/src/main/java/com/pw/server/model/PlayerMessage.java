@@ -9,6 +9,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EqualsAndHashCode
 public class PlayerMessage {
-    private final int playerNumber;
+    private final String playerGuid;
     private final String message;
 }

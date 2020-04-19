@@ -22,7 +22,7 @@ import java.util.concurrent.BlockingQueue;
 public class GameMasterConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameMasterConnector.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final int GAME_MASTER_TIMEOUT = 10 * 1000;
+    private static final int GAME_MASTER_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
     private ServerSocket serverSocket;
     private IOHandler ioHandler;

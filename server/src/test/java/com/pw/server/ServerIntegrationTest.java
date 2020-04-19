@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameMessageEndDTO;
 import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.GameSetupStatusDTO;
+import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.common.model.Action;
 import com.pw.common.model.GameEndResult;
 import com.pw.common.model.GameSetupStatus;
@@ -12,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +39,7 @@ public class ServerIntegrationTest {
                 assertThat(client.receiveMessage()).isEqualTo(MAPPER.writeValueAsString(new GameSetupDTO(Action.setup)));
 
                 client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
+
                 client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -49,6 +52,8 @@ public class ServerIntegrationTest {
 
     @Test
     public void shouldConnectPlayers() throws Exception {
+        String playerGuidA = "a";
+        String playerGuidB = "b";
         Thread gameMaster = new Thread(() -> {
             try {
                 SimpleClient client = new SimpleClient();
@@ -56,15 +61,17 @@ public class ServerIntegrationTest {
                 client.receiveMessage();
                 client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
 
-                Thread.sleep(300);
+                assertThat(MAPPER.readValue(client.receiveMessage(), PlayerConnectMessageDTO.class))
+                        .isNotNull().extracting(PlayerConnectMessageDTO::getPlayerGuid).isIn(playerGuidA, playerGuidB);
+                assertThat(MAPPER.readValue(client.receiveMessage(), PlayerConnectMessageDTO.class)).isNotNull()
+                        .isNotNull().extracting(PlayerConnectMessageDTO::getPlayerGuid).isIn(playerGuidA, playerGuidB);
 
                 client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
-            } catch (IOException | InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-
-        Runnable playerRunnable = () -> {
+        Thread playerA = new Thread(() -> {
             boolean error = false;
             try {
                 SimpleClient client = new SimpleClient();
@@ -72,29 +79,46 @@ public class ServerIntegrationTest {
                 Thread.sleep(100);
 
                 client.startConnection(host, port);
+                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, playerGuidA)));
             } catch (Exception e) {
                 error = true;
                 e.printStackTrace();
             }
             assertThat(error).isFalse();
-        };
-        Thread player1 = new Thread(playerRunnable);
-        Thread player2 = new Thread(playerRunnable);
+        });
+        Thread playerB = new Thread(() -> {
+            boolean error = false;
+            try {
+                SimpleClient client = new SimpleClient();
+
+                Thread.sleep(100);
+
+                client.startConnection(host, port);
+                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, playerGuidB)));
+            } catch (Exception e) {
+                error = true;
+                e.printStackTrace();
+            }
+            assertThat(error).isFalse();
+        });
 
         gameMaster.start();
-        player1.start();
-        player2.start();
+        playerA.start();
+        playerB.start();
 
         communicationServer.listen();
 
-        Thread.sleep(300);
+        Thread.sleep(500);
 
         assertThat(communicationServer.getPlayerWriters().size()).isEqualTo(2);
     }
 
     @Test
     public void shouldRelayMessageFromPlayerToGameMasterAndBack() throws Exception {
-        String message = "fverbt";
+        String playerGuid = "a";
+        String messageFromPlayer = "fverbt";
+        String messageFromGameMaster = MAPPER.writeValueAsString(Map.of("playerGuid", playerGuid, "message",
+                messageFromPlayer));
 
         Thread gameMaster = new Thread(() -> {
             try {
@@ -102,9 +126,10 @@ public class ServerIntegrationTest {
                 client.startConnection(host, port);
                 client.receiveMessage();
                 client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
+                client.receiveMessage();
 
-                assertThat(client.receiveMessage()).isEqualTo(message);
-                client.sendMessage(message);
+                assertThat(client.receiveMessage()).isEqualTo(messageFromPlayer);
+                client.sendMessage(messageFromGameMaster);
 
                 Thread.sleep(200);
 
@@ -121,10 +146,11 @@ public class ServerIntegrationTest {
                 Thread.sleep(100);
 
                 client.startConnection(host, port);
+                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, "a")));
 
-                client.sendMessage(message);
+                client.sendMessage(messageFromPlayer);
 
-                assertThat(client.receiveMessage()).isEqualTo(message);
+                assertThat(client.receiveMessage()).isEqualTo(messageFromGameMaster);
             } catch (Exception e) {
                 e.printStackTrace();
             }

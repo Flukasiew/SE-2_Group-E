@@ -17,7 +17,6 @@ import java.util.concurrent.BlockingQueue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -35,7 +34,7 @@ public class PlayerConnectorTest {
     private BlockingQueue<PlayerMessage> messages;
 
     @Mock
-    private Map<Integer, PrintWriter> playerWriters;
+    private Map<String, PrintWriter> playerWriters;
 
     @Mock
     private Socket socket;
@@ -74,19 +73,5 @@ public class PlayerConnectorTest {
         playerConnector.start();
 
         assertThat(Thread.activeCount()).isEqualTo(activeThreadsAtStart + 1);
-    }
-
-    @Test
-    public void shouldPutPrintWriterIntoPlayersMap() throws IOException {
-        PrintWriter printWriter = mock(PrintWriter.class);
-
-        doReturn(outputStream).when(socket).getOutputStream();
-        doReturn(printWriter).when(ioHandler).getWriter(outputStream);
-        doReturn(socket).when(serverSocket).accept();
-        when(serverSocket.accept()).thenReturn(socket).thenThrow(new SocketException());
-
-        playerConnector.run();
-
-        verify(playerWriters).put(1, printWriter);
     }
 }

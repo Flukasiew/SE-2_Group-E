@@ -1,5 +1,5 @@
 package com.pw.common.model;
 
 public enum Action {
-    setup, end
+    setup, end, connect
 }

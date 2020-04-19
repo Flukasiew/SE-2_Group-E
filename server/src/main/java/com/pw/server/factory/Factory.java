@@ -19,7 +19,7 @@ public class Factory {
 
     public PlayersConnector createPlayersConnector(ServerSocket serverSocket, IOHandler ioHandler,
                                                    BlockingQueue<PlayerMessage> messages,
-                                                   Map<Integer, PrintWriter> playerWriters) {
+                                                   Map<String, PrintWriter> playerWriters) {
         return new PlayersConnector(serverSocket, ioHandler, messages, playerWriters);
     }
 
