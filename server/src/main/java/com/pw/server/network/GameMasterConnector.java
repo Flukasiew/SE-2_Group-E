@@ -1,5 +1,6 @@
 package com.pw.server.network;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.GameSetupStatusDTO;
@@ -47,8 +48,7 @@ public class GameMasterConnector {
     }
 
     public void connect() throws Exception {
-        LOGGER.info("Setting up game master started");
-
+        LOGGER.info("Accepting game master connection...");
         try {
             gameMasterSocket = serverSocket.accept();
         } catch (IOException e) {
@@ -61,13 +61,12 @@ public class GameMasterConnector {
     }
 
     public void setup() throws IOException, GameMasterSetupException {
-        GameSetupDTO gameSetupDTO = new GameSetupDTO(Action.setup);
-        writer.println(MAPPER.writeValueAsString(gameSetupDTO));
-        LOGGER.info("Setup message sent to game master");
+        sendSetupMessage();
 
-        String inputLine;
-        while ((inputLine = reader.readLine()) != null) {
-            GameSetupStatusDTO gameSetupStatusDTO = MAPPER.readValue(inputLine, GameSetupStatusDTO.class);
+        String message;
+        while ((message = reader.readLine()) != null) {
+            GameSetupStatusDTO gameSetupStatusDTO = getSetupStatusMessage(message);
+
             if (gameSetupStatusDTO != null && gameSetupStatusDTO.getAction() == Action.setup) {
                 if (gameSetupStatusDTO.getStatus() == GameSetupStatus.OK) {
                     LOGGER.info("Game master returned OK status");
@@ -78,6 +77,22 @@ public class GameMasterConnector {
                     throw new GameMasterSetupException("Game master returned DENIED setup status");
                 }
             }
+        }
+
+        LOGGER.info("Game master setup completed");
+    }
+
+    private void sendSetupMessage() throws JsonProcessingException {
+        GameSetupDTO gameSetupDTO = new GameSetupDTO(Action.setup);
+        writer.println(MAPPER.writeValueAsString(gameSetupDTO));
+        LOGGER.info("Setup message sent to game master");
+    }
+
+    private GameSetupStatusDTO getSetupStatusMessage(String message) {
+        try {
+            return MAPPER.readValue(message, GameSetupStatusDTO.class);
+        } catch (IOException e) {
+            return null;
         }
     }
 

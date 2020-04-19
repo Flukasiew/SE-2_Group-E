@@ -49,7 +49,7 @@ public class PlayersConnector extends Thread {
             LOGGER.error(e.getLocalizedMessage());
         }
 
-        LOGGER.info("Accepting player connections started");
+        LOGGER.info("Accepting player connections...");
         while (connections <= MAX_CONNECTIONS_COUNT && running.get()) {
             Socket playerSocket;
             try {
@@ -65,7 +65,7 @@ public class PlayersConnector extends Thread {
             new PlayerReader(playerSocket, ioHandler, messages, playerWriters).start();
         }
 
-        LOGGER.info("Accepting player connections stopped");
+        LOGGER.info("Accepting player connections ended");
     }
 
     public void stopRunning() {

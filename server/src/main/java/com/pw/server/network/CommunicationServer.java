@@ -9,7 +9,6 @@ import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.util.Map;
@@ -107,7 +106,7 @@ public class CommunicationServer {
         Map<String, Object> messageJson;
         try {
             messageJson = MAPPER.readValue(message, Map.class);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new UnrecognizedMessageException("Cannot parse JSON", e);
         }
 

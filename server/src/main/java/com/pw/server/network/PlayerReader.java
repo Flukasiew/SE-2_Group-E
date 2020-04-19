@@ -53,7 +53,7 @@ public class PlayerReader extends Thread {
         try {
             playerConnectMessageDTO = MAPPER.readValue(message, PlayerConnectMessageDTO.class);
         } catch (IOException e) {
-            throw new PlayerSetupException("Not a connect message", e);
+            throw new PlayerSetupException("Invalid message format: not a connect message", e);
         }
 
         if (playerConnectMessageDTO.getPlayerGuid() == null) {
@@ -70,7 +70,7 @@ public class PlayerReader extends Thread {
     }
 
     private void readMessages() throws Exception {
-        LOGGER.info("Reading messages from player {} started", playerGuid);
+        LOGGER.info("Reading messages from player {}...", playerGuid);
 
         while (running.get()) {
             String line;

@@ -26,10 +26,9 @@ public class GameMasterReader extends Thread {
     @SneakyThrows
     @Override
     public void run() {
-        LOGGER.info("Reading messages from game master started");
-
         BufferedReader reader = ioHandler.getReader(socket.getInputStream());
 
+        LOGGER.info("Reading messages from game master...");
         while (running.get()) {
             String line;
             if (reader.ready() && (line = reader.readLine()) != null) {
