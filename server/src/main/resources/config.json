@@ -1,0 +1,5 @@
+{
+  "gameMasterConnectionTimeout": 300000,
+  "playerConnectionTimeout": 300000,
+  "playerConnectionsLimit": 20
+}
