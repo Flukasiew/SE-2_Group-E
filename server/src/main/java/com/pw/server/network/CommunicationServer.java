@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameMessageEndDTO;
 import com.pw.server.exception.UnrecognizedMessageException;
 import com.pw.server.factory.Factory;
+import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ public class CommunicationServer {
 
     private int portNumber;
     private String ipAddress;
+    private Config config;
 
     private Factory factory = new Factory();
 
@@ -39,9 +41,10 @@ public class CommunicationServer {
 
     private Boolean endGame = false;
 
-    public CommunicationServer(int portNumber, String ipAddress) {
+    public CommunicationServer(int portNumber, String ipAddress, Config config) {
         this.portNumber = portNumber;
         this.ipAddress = ipAddress;
+        this.config = config;
     }
 
     public void listen() throws Exception {
@@ -57,7 +60,8 @@ public class CommunicationServer {
     }
 
     private void setupGameMaster(ServerSocket serverSocket) throws Exception {
-        gameMasterConnector = factory.createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster);
+        gameMasterConnector = factory.createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster,
+                config);
         gameMasterConnector.connect();
         gameMasterConnector.setup();
         gameMasterWriter = gameMasterConnector.getWriter();
@@ -66,7 +70,8 @@ public class CommunicationServer {
     }
 
     private void setupPlayers(ServerSocket serverSocket) {
-        playersConnector = factory.createPlayersConnector(serverSocket, ioHandler, messagesFromPlayers, playerWriters);
+        playersConnector = factory.createPlayersConnector(serverSocket, ioHandler, messagesFromPlayers, playerWriters
+                , config);
         playersConnector.start();
 
         LOGGER.info("Players setup initiated");

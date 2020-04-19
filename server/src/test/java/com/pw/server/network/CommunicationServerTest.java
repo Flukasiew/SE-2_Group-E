@@ -7,6 +7,7 @@ import com.pw.common.model.Action;
 import com.pw.common.model.GameEndResult;
 import com.pw.server.exception.UnrecognizedMessageException;
 import com.pw.server.factory.Factory;
+import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +35,8 @@ public class CommunicationServerTest {
     private int port = 1300;
     private String endMessage = MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE));
 
+    private Config config = Config.create();
+
     @Mock
     private Factory factory;
     @Mock
@@ -60,7 +63,7 @@ public class CommunicationServerTest {
     public void prepare() throws Exception {
         initMocks(this);
 
-        communicationServer = new CommunicationServer(port, "localhost");
+        communicationServer = new CommunicationServer(port, "localhost", config);
         communicationServer.setFactory(factory);
         communicationServer.setIoHandler(ioHandler);
         communicationServer.setMessagesFromPlayers(messagesFromPlayers);
@@ -130,9 +133,10 @@ public class CommunicationServerTest {
 
     private void mockFactory() throws IOException {
         doReturn(serverSocket).when(factory).createServerSocket(port);
-        doReturn(gameMasterConnector).when(factory).createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster);
+        doReturn(gameMasterConnector).when(factory).createGameMasterConnector(serverSocket, ioHandler,
+                messagesFromGameMaster, config);
         doReturn(playersConnector).when(factory).createPlayersConnector(serverSocket, ioHandler, messagesFromPlayers,
-                playerWriters);
+                playerWriters, config);
     }
 
     private void mockGameMasterAndPlayersSetup() throws Exception {

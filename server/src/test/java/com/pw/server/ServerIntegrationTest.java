@@ -8,6 +8,7 @@ import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.common.model.Action;
 import com.pw.common.model.GameEndResult;
 import com.pw.common.model.GameSetupStatus;
+import com.pw.server.model.Config;
 import com.pw.server.network.CommunicationServer;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,9 +25,11 @@ public class ServerIntegrationTest {
     private String host = "localhost";
     private int port = 1300;
 
+    private Config config = Config.create();
+
     @Before
     public void prepare() {
-        communicationServer = new CommunicationServer(port, host);
+        communicationServer = new CommunicationServer(port, host, config);
     }
 
     @Test

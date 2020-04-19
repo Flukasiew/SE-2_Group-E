@@ -5,6 +5,7 @@ import com.pw.common.dto.GameSetupStatusDTO;
 import com.pw.common.model.Action;
 import com.pw.common.model.GameSetupStatus;
 import com.pw.server.exception.GameMasterSetupException;
+import com.pw.server.model.Config;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -31,6 +32,8 @@ public class GameMasterConnectorTest {
 
     private GameMasterConnector gameMasterConnector;
 
+    private Config config = Config.create();
+
     @Mock
     private ServerSocket serverSocket;
     @Mock
@@ -40,11 +43,10 @@ public class GameMasterConnectorTest {
     @Mock
     private Socket socket;
 
-
     @Before
     public void prepare() {
         initMocks(this);
-        gameMasterConnector = new GameMasterConnector(serverSocket, ioHandler, messages);
+        gameMasterConnector = new GameMasterConnector(serverSocket, ioHandler, messages, config);
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.pw.server.network;
 
+import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,28 +25,25 @@ public class PlayerConnectorTest {
 
     PlayersConnector playerConnector;
 
+    private Config config = Config.create();
+
     @Mock
     private ServerSocket serverSocket;
-
     @Mock
     private IOHandler ioHandler;
-
     @Mock
     private BlockingQueue<PlayerMessage> messages;
-
     @Mock
     private Map<String, PrintWriter> playerWriters;
-
     @Mock
     private Socket socket;
-
     @Mock
     private OutputStream outputStream;
 
     @Before
     public void prepare() {
         initMocks(this);
-        playerConnector = new PlayersConnector(serverSocket, ioHandler, messages, playerWriters);
+        playerConnector = new PlayersConnector(serverSocket, ioHandler, messages, playerWriters, config);
     }
 
     @Test

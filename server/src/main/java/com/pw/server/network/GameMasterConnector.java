@@ -7,6 +7,7 @@ import com.pw.common.dto.GameSetupStatusDTO;
 import com.pw.common.model.Action;
 import com.pw.common.model.GameSetupStatus;
 import com.pw.server.exception.GameMasterSetupException;
+import com.pw.server.model.Config;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,25 +24,26 @@ import java.util.concurrent.BlockingQueue;
 public class GameMasterConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameMasterConnector.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final int GAME_MASTER_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
     private ServerSocket serverSocket;
     private IOHandler ioHandler;
     private Socket gameMasterSocket;
     private BlockingQueue<String> messages;
+    private Config config;
 
     private PrintWriter writer;
     private BufferedReader reader;
 
     private GameMasterReader gameMasterReader;
 
-    public GameMasterConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<String> messages) {
+    public GameMasterConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<String> messages, Config config) {
         this.serverSocket = serverSocket;
         this.ioHandler = ioHandler;
         this.messages = messages;
+        this.config = config;
 
         try {
-            serverSocket.setSoTimeout(GAME_MASTER_TIMEOUT);
+            serverSocket.setSoTimeout(config.getGameMasterConnectionTimeout());
         } catch (SocketException e) {
             LOGGER.error(e.getLocalizedMessage());
         }

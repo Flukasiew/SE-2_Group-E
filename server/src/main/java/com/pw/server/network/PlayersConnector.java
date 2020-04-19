@@ -1,5 +1,6 @@
 package com.pw.server.network;
 
+import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -19,8 +20,6 @@ import static com.google.common.collect.Lists.newArrayList;
 @Data
 public class PlayersConnector extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayersConnector.class);
-    private static final int PLAYER_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-    private static final int MAX_CONNECTIONS_COUNT = 16;
 
     private AtomicBoolean running = new AtomicBoolean(true);
 
@@ -28,15 +27,17 @@ public class PlayersConnector extends Thread {
     private IOHandler ioHandler;
     private BlockingQueue<PlayerMessage> messages;
     private Map<String, PrintWriter> playerWriters;
+    private Config config;
 
     private List<PlayerReader> playerReaders = newArrayList();
 
     public PlayersConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<PlayerMessage> messages,
-                            Map<String, PrintWriter> playerWriters) {
+                            Map<String, PrintWriter> playerWriters, Config config) {
         this.serverSocket = serverSocket;
         this.ioHandler = ioHandler;
         this.messages = messages;
         this.playerWriters = playerWriters;
+        this.config = config;
     }
 
     @Override
@@ -44,13 +45,13 @@ public class PlayersConnector extends Thread {
         int connections = 0;
 
         try {
-            serverSocket.setSoTimeout(PLAYER_TIMEOUT);
+            serverSocket.setSoTimeout(config.getPlayerConnectionTimeout());
         } catch (SocketException e) {
             LOGGER.error(e.getLocalizedMessage());
         }
 
         LOGGER.info("Accepting player connections...");
-        while (connections <= MAX_CONNECTIONS_COUNT && running.get()) {
+        while (connections <= config.getPlayerConnectionsLimit() && running.get()) {
             Socket playerSocket;
             try {
                 playerSocket = serverSocket.accept();
