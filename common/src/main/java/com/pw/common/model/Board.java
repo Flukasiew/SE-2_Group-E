@@ -11,7 +11,7 @@ public class Board {
 
     public Board(int boardWidth, int goalAreaHeight, int taskAreaHeight){
         this.boardWidth = boardWidth;
-        this.boardHeight = goalAreaHeight+2*taskAreaHeight;
+        this.boardHeight = 2*goalAreaHeight+taskAreaHeight;
         this.goalAreaHeight = goalAreaHeight;
         this.taskAreaHeight = taskAreaHeight;
         this.initializeCellsGrid();
@@ -41,6 +41,8 @@ public class Board {
     }
 
     public Field getField(Position position){
+        if (position.getX()<0 || position.getX()> this.boardWidth || position.getY()<0 || position.getY()>this.boardHeight)
+            return null;
         return new Field(position, getCell(position));
     }
 
