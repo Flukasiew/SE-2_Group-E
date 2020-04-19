@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.*;
+import com.pw.gamemaster.exception.GameSetupException;
+import com.pw.gamemaster.exception.PlayerNotConnectedException;
+import com.pw.gamemaster.exception.UnexpectedActionException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -30,7 +33,15 @@ public class GameMaster {
     private List<UUID> teamBlueGuids;
 
     private Dictionary<UUID, PlayerDTO> playersDTO;
-    private Dictionary<UUID, Boolean> readyStatus;
+    private Map<UUID, Boolean> readyStatus;
+    private List<UUID> connectedPlayers;
+
+    public GameMaster() {
+        teamBlueGuids = new ArrayList<UUID>();
+        teamRedGuids = new ArrayList<UUID>();
+        connectedPlayers = new ArrayList<UUID>();
+        readyStatus = new HashMap<UUID, Boolean>();
+    }
 
     public void startGame() {
         if(readyStatus.size()>=teamRedGuids.size()+teamBlueGuids.size()){
@@ -38,7 +49,10 @@ public class GameMaster {
         }
     }
 
-    public void setupGame() {
+    public void setupGame() throws GameSetupException {
+        if(!this.configuration.checkData() || this.configuration==null) {
+            throw new GameSetupException("empty configuration");
+        }
         this.board = new GameMasterBoard(this.configuration.boardWidth, this.configuration.boardGoalHeight, this.configuration.boardTaskHeight);
         //this.status = GameMasterStatus.ACTIVE;
         for (Point pt : this.configuration.predefinedGoalPositions) {
@@ -118,8 +132,16 @@ public class GameMaster {
 
     }
 
-    private void setReadyStatus(UUID uuid) {
-        readyStatus.put(uuid, true);
+    private void deleteConfiguration() {
+        this.configuration = null;
+    }
+
+    private void setReadyStatus(UUID uuid) throws PlayerNotConnectedException {
+        if(connectedPlayers.contains(uuid)) {
+            readyStatus.put(uuid, Boolean.TRUE);
+        } else {
+            throw new PlayerNotConnectedException("player not connected");
+        }
     }
 
     private void placePlayers() {
@@ -169,15 +191,27 @@ public class GameMaster {
     }
 
     // return type not specified in specifiaction
-    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException {
+    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException, UnexpectedActionException {
         JSONParser jsonParser = new JSONParser();
         JSONObject msg = (JSONObject)jsonParser.parse(message);
         String action = (String)msg.get("action");
+        //System.out.println(action);
+        if(action.equals("setup")) {
+            try {
+                this.setupGame();
+                //this.startGame();
+                msg.put("status", "OK");
+            } catch (Exception e) {
+                msg.put("status", "DENIED");
+            }
+            //System.out.println("XD");
+            return msg;
+        }
         UUID uuid = UUID.fromString((String)msg.get("playerGuid"));
         String status = new String();
         switch (action) {
             // setup msgs
-            case "setup":
+            /*case "setup":
                 try {
                     this.setupGame();
                     //this.startGame();
@@ -185,12 +219,13 @@ public class GameMaster {
                 } catch (Exception e) {
                     msg.put("status", "DENIED");
                 }
-                return msg;
+                return msg;*/
             case "connect":
                 if (teamRedGuids.size() >= this.configuration.maxTeamSize && teamRedGuids.size() >= this.configuration.maxTeamSize) {
                     msg.put("status", "DENIED");
                     return msg;
                 }
+                connectedPlayers.add(uuid);
                 if (teamBlueGuids.size() < this.configuration.maxTeamSize) {
                     teamBlueGuids.add(uuid);
                 } else if (teamRedGuids.size() < this.configuration.maxTeamSize) {
@@ -290,8 +325,8 @@ public class GameMaster {
                 return msg;
 
             default:
-                throw new IllegalStateException("Unexpected value: " + action);
+                throw new UnexpectedActionException("Unexpected value: " + action);
         }
-        throw new RuntimeException("Unexpected behaviour");
+        throw new UnexpectedActionException("Unexpected behaviour");
     }
 }

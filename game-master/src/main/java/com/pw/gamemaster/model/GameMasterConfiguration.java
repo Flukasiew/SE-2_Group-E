@@ -46,4 +46,16 @@ public class GameMasterConfiguration {
         this.delayPick = delayPick;
         this.delayPlace = delayPlace;
     }
+
+    public boolean checkData() {
+        if(shamProbability<0 || shamProbability>1) return false;
+        if(maxTeamSize<0 || maxTeamSize>4) return false;
+        if(maxPieces<0 || maxPieces>(2*boardGoalHeight+boardTaskHeight)*boardWidth) return false;
+        if(initialPieces<0 || initialPieces>maxPieces) return false;
+        if(boardWidth<=0) return false;
+        if(boardTaskHeight<=0) return false;
+        if(boardGoalHeight<=0) return false;
+        if(predefinedGoalPositions.length>boardGoalHeight*boardWidth) return false;
+        return true;
+    }
 }
