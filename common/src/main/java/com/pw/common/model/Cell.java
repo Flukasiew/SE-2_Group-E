@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.Setter;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Data
 public class Cell {
     public CellState cellState;
@@ -20,7 +22,7 @@ public class Cell {
 
     public Cell() {
         this.distance=-1;
-        this.cellState = CellState.UNKNOWN;
+        this.cellState = CellState.EMPTY;
     }
 
     public Field getField(Position position ){
@@ -41,5 +43,11 @@ public class Cell {
     public int getDistance(){ return this.distance;}
     public void setDistance(int distance){ this.distance = distance;}
 
+    public String getplayerGuids(){
+        return this.playerGuids;
+    }
 
+    public void setPlayerGuids(String uuid){
+        this.playerGuids = uuid;
+    }
 }

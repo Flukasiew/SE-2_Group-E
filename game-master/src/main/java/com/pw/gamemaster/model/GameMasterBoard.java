@@ -26,49 +26,52 @@ public class GameMasterBoard extends Board {
         this.piecesPosition = new HashSet<>();
     }
 
-    public Position playerMove(PlayerDTO playerDTO, Position.Direction direction) {
-        Position start_pos = new Position(playerDTO.playerPosition.getX(), playerDTO.playerPosition.getY());
+    public Position playerMove(PlayerDTO playerDTO, Position.Direction direction) {;
+        Position old_pos = new Position(playerDTO.playerPosition.getX(),playerDTO.playerPosition.getY());
         playerDTO.playerPosition.changePosition(direction);
 
         if(playerDTO.playerPosition.getX()<0 || playerDTO.playerPosition.getX()>=this.boardWidth ||
-        playerDTO.playerPosition.getY()<0 || playerDTO.playerPosition.getY()>=this.boardHeight)
+                playerDTO.playerPosition.getY()<0 || playerDTO.playerPosition.getY()>=this.boardHeight)
         {
             return null;
         }
 
-        if(this.getField(playerDTO.getPosition()).getFieldColor() != Field.FieldColor.GRAY){
+        if(this.getField(playerDTO.getPosition()).cell.playerGuids != null){
             return null;
-        }
-
-        if (playerDTO.playerTeamColor == TeamColor.BLUE)
-        {
-            if (playerDTO.playerPosition.getY() <= this.boardHeight - this.goalAreaHeight)
-            {
-                this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.BLUE);
-                this.getField(start_pos).setFieldColor(Field.FieldColor.GRAY);
-                return playerDTO.playerPosition;
-            }
-            else return null;
         }
         else
         {
-            if (playerDTO.playerPosition.getY()<=this.goalAreaHeight) {
+            if (playerDTO.playerTeamColor == TeamColor.BLUE)
+            {
+                if (playerDTO.playerPosition.getY() < this.boardHeight - this.goalAreaHeight)
                 {
-                    this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.RED);
-                    this.getField(start_pos).setFieldColor(Field.FieldColor.GRAY);
+                    this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid.toString());
+                    this.cellsGrid[old_pos.getX()][old_pos.getY()].setPlayerGuids(null);
                     return playerDTO.playerPosition;
                 }
+                else return null;
             }
+            else
+            {
+                if (playerDTO.playerPosition.getY()>this.goalAreaHeight) {
+                    {
+                        this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid.toString());
+                        this.cellsGrid[old_pos.getX()][old_pos.getY()].setPlayerGuids(null);
+                        return playerDTO.playerPosition;
+                    }
+                }
 
-            else return null;
+                else return null;
+            }
         }
+
     }
 
     public Cell.CellState takePiece(Position position) {
         Cell.CellState init_state =  this.getField(position).cell.getCellState();
 
         if(this.getField(position).cell.getCellState() == Cell.CellState.PIECE){
-            this.cellsGrid[position.getX()][position.getY()].setCellState( Cell.CellState.EMPTY);
+            this.cellsGrid[position.getX()][position.getY()].setCellState(Cell.CellState.EMPTY);
             for (Position p : this.piecesPosition){
                 if(p.x == position.getX() && p.y == position.getY()) {
                     this.piecesPosition.remove(p);
@@ -83,9 +86,9 @@ public class GameMasterBoard extends Board {
     public Position generatePiece() {
         Position new_piece_position;
 
-        Position[] pos = new Position[this.boardWidth*(this.boardHeight-2*this.goalAreaHeight)];
+        Position[] pos = new Position[this.boardWidth*this.taskAreaHeight];
         for (int i = 0; i < this.boardWidth; i++) {
-            for (int j = 0; j < this.boardHeight - 2 * this.goalAreaHeight; j++) {
+            for (int j = 0; j < this.taskAreaHeight; j++) {
                 Position temp = new Position();
                 temp.x = i;
                 temp.y = j + this.goalAreaHeight;
@@ -96,13 +99,20 @@ public class GameMasterBoard extends Board {
 
         Collections.shuffle(Arrays.asList(pos));
         for (Position p : pos) {
+            int exists = 0;
             new_piece_position = p;
             for (Position piece : piecesPosition) {
-                if(piece.x != new_piece_position.getX() || piece.y != new_piece_position.getY()){
-                    piecesPosition.add(new_piece_position);
-                    this.getField(new_piece_position).cell.setCellState(Cell.CellState.PIECE);
-                    return new_piece_position;
+                if(piece.x == new_piece_position.getX() && piece.y == new_piece_position.getY()){
+                    exists =1;
+                    break;
                 }
+            }
+            if(exists == 0)
+            {
+
+                piecesPosition.add(new_piece_position);
+                this.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+                return new_piece_position;
             }
         }
 
@@ -110,32 +120,29 @@ public class GameMasterBoard extends Board {
     }
 
     public void setGoal(Position position) {
-        this.getField(position).cell.setCellState(Cell.CellState.GOAL);
+        this.cellsGrid[position.getX()][position.getY()].cellState = Cell.CellState.GOAL;
     }
 
     public PlacementResult placePiece(PlayerDTO playerDTO) {
+
         Field current_field = this.getField(playerDTO.playerPosition);
-        if (current_field.cell.getCellState()== Cell.CellState.GOAL){
+        if(current_field == null) return PlacementResult.POINTLESS;
+        if (current_field.cell.getCellState() == Cell.CellState.GOAL){
             current_field.cell.setCellState(Cell.CellState.EMPTY);
             this.updateField(current_field);
             return PlacementResult.CORRECT;
         }
         else {
-                return PlacementResult.POINTLESS;
+            return PlacementResult.POINTLESS;
         }
     }
 
     public Position placePlayer(PlayerDTO playerDTO) {
-        if(this.getField(playerDTO.playerPosition).fieldColor != Field.FieldColor.GRAY){
+        if (this.getField(playerDTO.getPosition()) == null)return null;
+        if(this.getField(playerDTO.getPosition()).cell.getplayerGuids() !=null){
             return null;
         }
-
-        switch(playerDTO.playerTeamColor){
-            case BLUE:
-                this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.BLUE);
-            case RED:
-                this.getField(playerDTO.playerPosition).setFieldColor(Field.FieldColor.RED);
-        }
+        this.cellsGrid[playerDTO.playerPosition.getX()][playerDTO.playerPosition.getY()].setPlayerGuids((playerDTO.playerGuid.toString()));
 
         return playerDTO.playerPosition;
     }
@@ -205,6 +212,8 @@ public class GameMasterBoard extends Board {
     public int manhattanDistanceTwoPoints(Point pointA, Point pointB) {
         return Math.abs(pointA.x-pointB.x) + Math.abs(pointA.y-pointB.y);
     }
+
+    public Set<Position> getPiecesPosition() {
+        return this.piecesPosition;
+    }
 }
-
-
