@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.util.UUID;
 import lombok.Data;
 
-@Data
 public class PlayerDTO {
     public UUID playerGuid;
     public TeamRole playerTeamRole;
@@ -35,6 +34,20 @@ public class PlayerDTO {
 
     public TeamColor getPlayerTeamColor() {
         return playerTeamColor;
+    }
+
+    public PlayerDTO(UUID playerGuid, TeamRole playerTeamRole, TeamColor playerTeamColor, ActionType playerAction, Position playerPosition) {
+        this.playerGuid = playerGuid;
+        this.playerTeamRole = playerTeamRole;
+        this.playerTeamColor = playerTeamColor;
+        this.playerAction = playerAction;
+        this.playerPosition = playerPosition;
+    }
+
+    public PlayerDTO(UUID playerGuid, TeamRole playerTeamRole, ActionType playerAction) {
+        this.playerGuid = playerGuid;
+        this.playerTeamRole = playerTeamRole;
+        this.playerAction = playerAction;
     }
 
     public void setPlayerTeamColor(TeamColor playerTeamColor) {
