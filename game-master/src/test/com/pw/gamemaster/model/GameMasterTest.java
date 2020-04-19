@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GameMasterTest {
     GameMaster gm = new GameMaster();
-    String path = "C:/Users/sz/IdeaProjects/SE-2_Group-E/gmconf.json";
-    String pathWrongGMConf = "C:/Users/sz/IdeaProjects/SE-2_Group-E/test.json";
+    String path = "gmconf.json";
+    String pathWrongGMConf = "test.json";
 
     @Test
     void messageHandlerSetupOK() throws IOException, ParseException, JSONException, UnexpectedActionException  {
