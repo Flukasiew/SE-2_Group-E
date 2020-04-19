@@ -15,4 +15,24 @@ public class Team {
     public boolean isLeader() {
         return role == TeamRole.LEADER;
     }
+
+    public TeamColor getColor()
+    {
+        return color;
+    }
+
+    public void setColor(TeamColor color)
+    {
+        this.color = color;
+    }
+
+    public void setRole(TeamRole role)
+    {
+        this.role = role;
+    }
+
+    public TeamRole getRole()
+    {
+        return role;
+    }
 }
