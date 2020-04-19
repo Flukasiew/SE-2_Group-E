@@ -1,10 +1,12 @@
 package com.pw.gamemaster.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.awt.*;
 
+@Data
 @NoArgsConstructor
 public class GameMasterConfiguration {
     public double shamProbability;

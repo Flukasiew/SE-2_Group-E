@@ -3,10 +3,7 @@ package com.pw.gamemaster.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerDTO;
-import com.pw.common.model.ActionType;
-import com.pw.common.model.Cell;
-import com.pw.common.model.Field;
-import com.pw.common.model.Position;
+import com.pw.common.model.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -33,32 +30,27 @@ public class GameMaster {
     private List<UUID> teamBlueGuids;
 
     private Dictionary<UUID, PlayerDTO> playersDTO;
+    private Dictionary<UUID, Boolean> readyStatus;
 
     public void startGame() {
-
+        if(readyStatus.size()>=teamRedGuids.size()+teamBlueGuids.size()){
+            this.placePlayers();
+        }
     }
 
     public void setupGame() {
         this.board = new GameMasterBoard(this.configuration.boardWidth, this.configuration.boardGoalHeight, this.configuration.boardTaskHeight);
         //this.status = GameMasterStatus.ACTIVE;
-        for (Point pt: this.configuration.predefinedGoalPositions) {
+        for (Point pt : this.configuration.predefinedGoalPositions) {
             this.board.setGoal(new Position(pt.x, pt.y));
         }
         Position pos = new Position();
-        for (int i=0;i<this.configuration.initialPieces;i++) {
+        for (int i = 0; i < this.configuration.initialPieces; i++) {
             pos = this.board.generatePiece();
-            if(pos==null) {
+            if (pos == null) {
                 break;
             }
         }
-
-//        int bluePlayersToPlace = teamBlueGuids.size();
-//        int redPlayersToPlace = teamRedGuids.size();
-//        for(int i=0;i<this.board.boardHeight || (bluePlayersToPlace<=0 && redPlayersToPlace<=0);i++) {
-//            for(int j=0;j<this.board.boardWidth || (bluePlayersToPlace<=0 && redPlayersToPlace<=0);j++) {
-//
-//            }
-//        }
     }
 
     private void listen() {
@@ -95,7 +87,7 @@ public class GameMaster {
         jsonObject.put("maxPieces", this.configuration.maxPieces);
         jsonObject.put("initialPieces", this.configuration.initialPieces);
         JSONArray array = new JSONArray();
-        for(int i = 0; i<this.configuration.predefinedGoalPositions.length; i++) {
+        for (int i = 0; i < this.configuration.predefinedGoalPositions.length; i++) {
             JSONArray xd = new JSONArray();
             xd.add(this.configuration.predefinedGoalPositions[i].x);
             xd.add(this.configuration.predefinedGoalPositions[i].y);
@@ -126,8 +118,58 @@ public class GameMaster {
 
     }
 
+    private void setReadyStatus(UUID uuid) {
+        readyStatus.put(uuid, true);
+    }
+
+    private void placePlayers() {
+        int bluePlayersToPlace = teamBlueGuids.size();
+        int redPlayersToPlace = teamRedGuids.size();
+        UUID currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
+        PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
+        tmp.playerTeamColor=TeamColor.BLUE;
+        Position placed = new Position();
+        for(int i=0;i<this.configuration.boardWidth;i++) {
+            if(bluePlayersToPlace<=0) {
+                break;
+            }
+            for(int j=0;j<this.configuration.boardTaskHeight+this.configuration.boardGoalHeight;j++) {
+                if(bluePlayersToPlace<=0) {
+                    break;
+                }
+                tmp.playerPosition = new Position(i,j);
+                tmp.playerGuid = currentUuid;
+                placed = this.board.placePlayer(tmp);
+                if(placed==null) {
+                    continue;
+                }
+                bluePlayersToPlace--;
+                currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
+            }
+        }
+        currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
+        for(int i=this.configuration.boardWidth-1;i>=0;i--) {
+            if(redPlayersToPlace<=0) {
+                break;
+            }
+            for(int j=this.board.boardHeight-1;j>=0;j--) {
+                if(redPlayersToPlace<=0) {
+                    break;
+                }
+                tmp.playerPosition = new Position(i,j);
+                tmp.playerGuid = currentUuid;
+                placed = this.board.placePlayer(tmp);
+                if(placed==null) {
+                    continue;
+                }
+                redPlayersToPlace--;
+                currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
+            }
+        }
+    }
+
     // return type not specified in specifiaction
-    public void messageHandler(String message) throws ParseException, JsonProcessingException {
+    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException {
         JSONParser jsonParser = new JSONParser();
         JSONObject msg = (JSONObject)jsonParser.parse(message);
         String action = (String)msg.get("action");
@@ -136,15 +178,34 @@ public class GameMaster {
         switch (action) {
             // setup msgs
             case "setup":
-                break;
+                try {
+                    this.setupGame();
+                    //this.startGame();
+                    msg.put("status", "OK");
+                } catch (Exception e) {
+                    msg.put("status", "DENIED");
+                }
+                return msg;
             case "connect":
-                break;
+                if (teamRedGuids.size() >= this.configuration.maxTeamSize && teamRedGuids.size() >= this.configuration.maxTeamSize) {
+                    msg.put("status", "DENIED");
+                    return msg;
+                }
+                if (teamBlueGuids.size() < this.configuration.maxTeamSize) {
+                    teamBlueGuids.add(uuid);
+                } else if (teamRedGuids.size() < this.configuration.maxTeamSize) {
+                    teamRedGuids.add(uuid);
+                }
+                msg.put("status", "OK");
+                return msg;
             case "ready":
-                break;
-            case "start":
-                break;
-            case "end":
-                break;
+                try {
+                    setReadyStatus(uuid);
+                    msg.put("status", "YES");
+                } catch (Exception e) {
+                    msg.put("status", "NO");
+                }
+                return msg;
 
             // game action msgs
             case "move":
@@ -169,7 +230,7 @@ public class GameMaster {
                 PlayerDTO playerDTO = playersDTO.get(uuid);
                 Position newPosition = board.playerMove(playerDTO, direction);
                 JSONObject positionJSON = new JSONObject();
-                if(newPosition.x == -1 && newPosition.y == -1) {
+                if (newPosition.x == -1 && newPosition.y == -1) {
                     status = "DENIED";
                     msg.put("position", null);
                 } else {
@@ -179,57 +240,58 @@ public class GameMaster {
                     msg.put("position", positionJSON);
                 }
                 msg.put("status", status);
-                // implement sending msg back to player
-                break;
+                return msg;
+            // implement sending msg back to player
             case "pickup":
                 Position pos = playersDTO.get(uuid).playerPosition;
                 Cell.CellState res = board.takePiece(pos);
-                if(res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
+                if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
                     status = "OK";
                 } else {
                     status = "DENIED";
                 }
                 msg.put("status", status);
                 // implement sending msg back to player
-                break;
+                return msg;
             case "test":
                 Field xd = this.board.getField(playersDTO.get(uuid).playerPosition);
                 Cell.CellState state = xd.cell.cellState;
-                if(state != Cell.CellState.PIECE) {
+                if (state != Cell.CellState.PIECE) {
                     msg.put("status", "DENIED");
                     msg.put("test", null);
                 } else {
-                    boolean boolStatus = Math.random() > (1-configuration.shamProbability);
-                    msg.put("status", boolStatus);
+                    boolean boolStatus = Math.random() > (1 - configuration.shamProbability);
+                    msg.put("test", boolStatus);
                     msg.put("status", "OK");
                 }
                 // implement sending msg back
-                break;
+                return msg;
             case "place":
                 Field xdd = this.board.getField(playersDTO.get(uuid).playerPosition);
                 Cell.CellState state2 = xdd.cell.cellState;
-                if(state2 == Cell.CellState.PIECE) {
+                if (state2 == Cell.CellState.PIECE) {
                     msg.put("status", "DENIED");
                     msg.put("placementResult", null);
                     break;
                 }
                 PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
-                if(res2==PlacementResult.CORRECT) {
+                if (res2 == PlacementResult.CORRECT) {
                     msg.put("placementResult", "Correct");
-                } else if (res2==PlacementResult.POINTLESS) {
+                } else if (res2 == PlacementResult.POINTLESS) {
                     msg.put("placementResult", "Pointless");
                 }
                 // implement sending msg back
-                break;
+                return msg;
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
                 ObjectMapper mapper = new ObjectMapper();
                 msg.put("fields", mapper.writeValueAsString(fieldList));
                 // implement sending msg back
-                break;
+                return msg;
 
             default:
                 throw new IllegalStateException("Unexpected value: " + action);
         }
+        throw new RuntimeException("Unexpected behaviour");
     }
 }
