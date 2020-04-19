@@ -15,11 +15,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.pw</groupId>
-			<artifactId>game-master</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.pw</groupId>
-			<artifactId>player</artifactId>
+			<artifactId>common</artifactId>
 		</dependency>
 	</dependencies>
 
