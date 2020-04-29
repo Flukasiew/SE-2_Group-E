@@ -1,0 +1,34 @@
+{
+    "boardWidth": 7,
+    "delayDiscover": 50,
+    "shamProbability": 0.1,
+    "delayNextPieceplace": 50,
+    "delayPick": 50,
+    "maxTeamSize": 1,
+    "initialPieces": 3,
+    "delayDestroyPiece": 50,
+    "maxPieces": 4,
+    "delayMove": 50,
+    "boardTaskHeight": 6,
+    "predefinedGoalPositions": [
+        [
+            3,
+            0
+        ],
+        [
+            2,
+            1
+        ],
+        [
+            3,
+            10
+        ],
+        [
+            2,
+            11
+        ]
+    ],
+    "boardGoalHeight": 3,
+    "delayPlace": 50,
+    "delayTest": 50
+}

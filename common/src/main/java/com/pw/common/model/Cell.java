@@ -1,6 +1,10 @@
 package com.pw.common.model;
 
 import lombok.Data;
+import lombok.Setter;
+import lombok.Getter;
+
+import java.util.UUID;
 
 @Data
 public class Cell {
@@ -17,6 +21,33 @@ public class Cell {
     }
 
     public Cell() {
+        this.distance=-1;
+        this.cellState = CellState.EMPTY;
+    }
 
+    public Field getField(Position position ){
+        Field new_field = new Field();
+        new_field.cell=this;
+        new_field.position=position;
+        return new_field;
+    }
+
+    public CellState getCellState() {
+        return this.cellState;
+    }
+
+    public void setCellState(CellState cellState) {
+        this.cellState = cellState;
+    }
+
+    public int getDistance(){ return this.distance;}
+    public void setDistance(int distance){ this.distance = distance;}
+
+    public String getplayerGuids(){
+        return this.playerGuids;
+    }
+
+    public void setPlayerGuids(String uuid){
+        this.playerGuids = uuid;
     }
 }
