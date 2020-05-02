@@ -14,4 +14,11 @@ public class Field {
     public Field() {
 
     }
+
+    public Field(Position position, Cell cell){
+        this.position = position;
+        this.cell = cell;
+        this.fieldColor=FieldColor.GRAY;
+    }
+
 }
