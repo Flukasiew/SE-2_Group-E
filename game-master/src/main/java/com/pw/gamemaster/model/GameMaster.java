@@ -7,21 +7,27 @@ import com.pw.common.model.*;
 import com.pw.gamemaster.exception.GameSetupException;
 import com.pw.gamemaster.exception.PlayerNotConnectedException;
 import com.pw.gamemaster.exception.UnexpectedActionException;
+import lombok.extern.java.Log;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.RuntimeErrorException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.*;
 import java.util.List;
 
 
 public class GameMaster {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GameMaster.class);
+
     public GameMasterBoard board;
     public GameMasterStatus status;
     private int portNumber;
@@ -32,6 +38,8 @@ public class GameMaster {
     private List<UUID> teamRedGuids;
     private List<UUID> teamBlueGuids;
 
+    private SimpleClient simpleClient;
+    private String logFilePath = "log_gm.txt";
     private Dictionary<UUID, PlayerDTO> playersDTO;
     private Map<UUID, Boolean> readyStatus;
     private List<UUID> connectedPlayers;
@@ -41,12 +49,24 @@ public class GameMaster {
         teamRedGuids = new ArrayList<UUID>();
         connectedPlayers = new ArrayList<UUID>();
         readyStatus = new HashMap<UUID, Boolean>();
+        LOGGER.info("Game master created");
+    }
+
+    public GameMaster(String host, int portNumber) throws IOException, ParseException, UnexpectedActionException {
+        teamBlueGuids = new ArrayList<UUID>();
+        teamRedGuids = new ArrayList<UUID>();
+        connectedPlayers = new ArrayList<UUID>();
+        readyStatus = new HashMap<UUID, Boolean>();
+        simpleClient = new SimpleClient();
+        simpleClient.startConnection(host, portNumber);
+        listen();
     }
 
     public void startGame() {
         if(readyStatus.size()>=teamRedGuids.size()+teamBlueGuids.size()){
             this.placePlayers();
         }
+        LOGGER.info("Game started");
     }
 
     public void setupGame() throws GameSetupException {
@@ -65,10 +85,26 @@ public class GameMaster {
                 break;
             }
         }
+        LOGGER.info("Game setup completed");
     }
 
-    private void listen() {
-
+    private void listen() throws IOException, ParseException, UnexpectedActionException {
+        LOGGER.info("Game master has started listening");
+        try {
+            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
+                String msg = simpleClient.receiveMessage();
+                if (!msg.isEmpty()) {
+                    LOGGER.info("Message received", msg);
+                    JSONObject jsonObject = messageHandler(msg);
+                    simpleClient.sendMessage(jsonObject.toJSONString());
+                    LOGGER.info("Message returned", jsonObject.toJSONString());
+                }
+            }
+        }
+        catch (Exception e) {
+            LOGGER.error("Exception occured when listening", e.toString());
+        }
+        LOGGER.info("Game master has finished listening");
     }
 
     public GameMasterConfiguration loadConfigurationFromJson(String path) throws IOException, ParseException {
@@ -122,6 +158,7 @@ public class GameMaster {
         FileWriter file = new FileWriter(path);
         file.write(jsonObject.toJSONString());
         file.close();
+        LOGGER.info("GMConfiguration saved");
     }
 
     private void putNewPiece() {
@@ -142,6 +179,7 @@ public class GameMaster {
         } else {
             throw new PlayerNotConnectedException("player not connected");
         }
+        LOGGER.info("Player ", uuid, " set to ready");
     }
 
     private void placePlayers() {
@@ -151,43 +189,53 @@ public class GameMaster {
         PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
         tmp.playerTeamColor=TeamColor.BLUE;
         Position placed = new Position();
-        for(int i=0;i<this.configuration.boardWidth;i++) {
-            if(bluePlayersToPlace<=0) {
-                break;
-            }
-            for(int j=0;j<this.configuration.boardTaskHeight+this.configuration.boardGoalHeight;j++) {
+        try {
+            for(int i=0;i<this.configuration.boardWidth;i++) {
                 if(bluePlayersToPlace<=0) {
                     break;
                 }
-                tmp.playerPosition = new Position(i,j);
-                tmp.playerGuid = currentUuid;
-                placed = this.board.placePlayer(tmp);
-                if(placed==null) {
-                    continue;
+                for(int j=0;j<this.configuration.boardTaskHeight+this.configuration.boardGoalHeight;j++) {
+                    if(bluePlayersToPlace<=0) {
+                        break;
+                    }
+                    tmp.playerPosition = new Position(i,j);
+                    tmp.playerGuid = currentUuid;
+                    placed = this.board.placePlayer(tmp);
+                    if(placed==null) {
+                        continue;
+                    }
+                    bluePlayersToPlace--;
+                    currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
                 }
-                bluePlayersToPlace--;
-                currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
             }
         }
-        currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
-        for(int i=this.configuration.boardWidth-1;i>=0;i--) {
-            if(redPlayersToPlace<=0) {
-                break;
-            }
-            for(int j=this.board.boardHeight-1;j>=0;j--) {
+        catch (Exception e) {
+            LOGGER.error("Error while placing blue players", e);
+        }
+        try {
+            currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
+            for(int i=this.configuration.boardWidth-1;i>=0;i--) {
                 if(redPlayersToPlace<=0) {
                     break;
                 }
-                tmp.playerPosition = new Position(i,j);
-                tmp.playerGuid = currentUuid;
-                placed = this.board.placePlayer(tmp);
-                if(placed==null) {
-                    continue;
+                for(int j=this.board.boardHeight-1;j>=0;j--) {
+                    if(redPlayersToPlace<=0) {
+                        break;
+                    }
+                    tmp.playerPosition = new Position(i,j);
+                    tmp.playerGuid = currentUuid;
+                    placed = this.board.placePlayer(tmp);
+                    if(placed==null) {
+                        continue;
+                    }
+                    redPlayersToPlace--;
+                    currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
                 }
-                redPlayersToPlace--;
-                currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
             }
+        } catch (Exception e) {
+            LOGGER.error("Error while placing red players", e);
         }
+        LOGGER.info("Players have been placed on the board");
     }
 
     // return type not specified in specifiaction
@@ -211,7 +259,7 @@ public class GameMaster {
         String status = new String();
         switch (action) {
             // setup msgs
-            /*case "setup":
+            case "setup":
                 try {
                     this.setupGame();
                     //this.startGame();
@@ -219,7 +267,7 @@ public class GameMaster {
                 } catch (Exception e) {
                     msg.put("status", "DENIED");
                 }
-                return msg;*/
+                return msg;
             case "connect":
                 if (teamRedGuids.size() >= this.configuration.maxTeamSize && teamRedGuids.size() >= this.configuration.maxTeamSize) {
                     msg.put("status", "DENIED");
@@ -329,4 +377,6 @@ public class GameMaster {
         }
         throw new UnexpectedActionException("Unexpected behaviour");
     }
+
+
 }
