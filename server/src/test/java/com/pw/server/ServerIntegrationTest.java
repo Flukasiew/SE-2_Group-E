@@ -22,14 +22,14 @@ public class ServerIntegrationTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private CommunicationServer communicationServer;
-    private String host = "localhost";
-    private int port = 1300;
 
     private Config config = Config.create();
+    private String host = config.getIpAddress();
+    private int port = config.getPortNumber();
 
     @Before
     public void prepare() {
-        communicationServer = new CommunicationServer(port, host, config);
+        communicationServer = new CommunicationServer(config);
     }
 
     @Test

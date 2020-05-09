@@ -41,9 +41,9 @@ public class CommunicationServer {
 
     private Boolean endGame = false;
 
-    public CommunicationServer(int portNumber, String ipAddress, Config config) {
-        this.portNumber = portNumber;
-        this.ipAddress = ipAddress;
+    public CommunicationServer(Config config) {
+        this.portNumber = config.getPortNumber();
+        this.ipAddress = config.getIpAddress();
         this.config = config;
     }
 

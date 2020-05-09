@@ -32,7 +32,6 @@ public class CommunicationServerTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private CommunicationServer communicationServer;
-    private int port = 1300;
     private String endMessage = MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE));
 
     private Config config = Config.create();
@@ -63,7 +62,7 @@ public class CommunicationServerTest {
     public void prepare() throws Exception {
         initMocks(this);
 
-        communicationServer = new CommunicationServer(port, "localhost", config);
+        communicationServer = new CommunicationServer(config);
         communicationServer.setFactory(factory);
         communicationServer.setIoHandler(ioHandler);
         communicationServer.setMessagesFromPlayers(messagesFromPlayers);
@@ -132,7 +131,7 @@ public class CommunicationServerTest {
     }
 
     private void mockFactory() throws IOException {
-        doReturn(serverSocket).when(factory).createServerSocket(port);
+        doReturn(serverSocket).when(factory).createServerSocket(config.getPortNumber());
         doReturn(gameMasterConnector).when(factory).createGameMasterConnector(serverSocket, ioHandler,
                 messagesFromGameMaster, config);
         doReturn(playersConnector).when(factory).createPlayersConnector(serverSocket, ioHandler, messagesFromPlayers,
