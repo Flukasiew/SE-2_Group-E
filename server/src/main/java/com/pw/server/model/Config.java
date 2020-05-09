@@ -20,6 +20,8 @@ public class Config {
     private Integer gameMasterConnectionTimeout = 5 * 60 * 1000;
     private Integer playerConnectionTimeout = 5 * 60 * 1000;
 
+    private Integer retriesLimit = 5;
+
     private Config() {
     }
 

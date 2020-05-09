@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -128,6 +129,75 @@ public class CommunicationServerTest {
         doReturn(message).when(messagesFromGameMaster).take();
 
         assertThrows(UnrecognizedMessageException.class, () -> communicationServer.listen());
+    }
+
+    @Test
+    public void shouldRetrySendingMessageToPlayer() throws Exception {
+        String playerGuid = "a";
+        String messageFromGameMaster = MAPPER.writeValueAsString(Map.of("playerGuid", playerGuid));
+        PrintWriter printWriter = mock(PrintWriter.class);
+
+        doReturn(true).when(messagesFromPlayers).isEmpty();
+        doReturn(false).when(messagesFromGameMaster).isEmpty();
+        when(messagesFromGameMaster.take()).thenReturn(messageFromGameMaster).thenReturn(endMessage);
+
+        when(printWriter.checkError()).thenReturn(true).thenReturn(false);
+        doReturn(printWriter).when(playerWriters).get(playerGuid);
+
+        communicationServer.listen();
+
+        verify(printWriter, times(2)).println(messageFromGameMaster);
+    }
+
+    @Test
+    public void shouldRemovePlayerWhenRetriesLimitReached() throws Exception {
+        String playerGuid = "a";
+        String messageFromGameMaster = MAPPER.writeValueAsString(Map.of("playerGuid", playerGuid));
+        PrintWriter printWriter = mock(PrintWriter.class);
+
+        doReturn(true).when(messagesFromPlayers).isEmpty();
+        doReturn(false).when(messagesFromGameMaster).isEmpty();
+        when(messagesFromGameMaster.take()).thenReturn(messageFromGameMaster).thenReturn(endMessage);
+
+        doReturn(true).when(printWriter).checkError();
+        doReturn(printWriter).when(playerWriters).get(playerGuid);
+
+        communicationServer.listen();
+
+        verify(printWriter, times(config.getRetriesLimit() + 1)).println(messageFromGameMaster);
+        assertThat(communicationServer.getPlayerWriters()).doesNotContainKey(playerGuid);
+    }
+
+    @Test
+    public void shouldRetrySendingMessageToGameMaster() throws Exception {
+        PlayerMessage messageFromPlayer = new PlayerMessage("b", "fwagwerabrweh");
+
+        doReturn(false).when(messagesFromPlayers).isEmpty();
+        doReturn(false).when(messagesFromGameMaster).isEmpty();
+
+        doReturn(messageFromPlayer).when(messagesFromPlayers).take();
+        when(gameMasterWriter.checkError()).thenReturn(true).thenReturn(false);
+
+        doReturn(endMessage).when(messagesFromGameMaster).take();
+
+        communicationServer.listen();
+
+        verify(gameMasterWriter, times(2)).println(messageFromPlayer.getMessage());
+    }
+
+    @Test
+    public void shouldShutDownOnRetiresLimitReachedWhenSendingMessageToGameMaster() throws Exception {
+        PlayerMessage messageFromPlayer = new PlayerMessage("b", "fwagwerabrweh");
+
+        doReturn(false).when(messagesFromPlayers).isEmpty();
+        doReturn(true).when(messagesFromGameMaster).isEmpty();
+
+        doReturn(messageFromPlayer).when(messagesFromPlayers).take();
+        doReturn(true).when(gameMasterWriter).checkError();
+
+        communicationServer.listen();
+
+        verify(gameMasterWriter, times(config.getRetriesLimit() + 1)).println(messageFromPlayer.getMessage());
     }
 
     private void mockFactory() throws IOException {

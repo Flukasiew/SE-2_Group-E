@@ -12,6 +12,8 @@ import com.pw.server.model.Config;
 import com.pw.server.network.CommunicationServer;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServerIntegrationTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerIntegrationTest.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private CommunicationServer communicationServer;
@@ -157,6 +160,49 @@ public class ServerIntegrationTest {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        });
+
+        gameMaster.start();
+        player.start();
+
+        communicationServer.listen();
+    }
+
+    @Test
+    public void shouldShutDownWhenUnableToMessageGameMaster() throws Exception {
+        String playerGuid = "a";
+        Thread gameMaster = new Thread(() -> {
+            try {
+                SimpleClient client = new SimpleClient();
+                client.startConnection(host, port);
+                client.receiveMessage();
+                client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
+
+                LOGGER.info("Shutting down game master...");
+                client.stopConnection();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        Thread player = new Thread(() -> {
+            boolean error = false;
+            try {
+                SimpleClient client = new SimpleClient();
+
+                Thread.sleep(100);
+
+                client.startConnection(host, port);
+                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port,
+                        playerGuid)));
+
+                Thread.sleep(100);
+
+                client.sendMessage("FWEFWEVEVWVQ");
+            } catch (Exception e) {
+                error = true;
+                e.printStackTrace();
+            }
+            assertThat(error).isFalse();
         });
 
         gameMaster.start();
