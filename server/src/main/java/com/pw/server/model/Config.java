@@ -11,10 +11,16 @@ import java.io.IOException;
 @Data
 public class Config {
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
+
+    private Integer portNumber = 1300;
+    private String ipAddress = "0.0.0.0";
+
     private Integer playerConnectionsLimit = 16;
 
     private Integer gameMasterConnectionTimeout = 5 * 60 * 1000;
     private Integer playerConnectionTimeout = 5 * 60 * 1000;
+
+    private Integer retriesLimit = 5;
 
     private Config() {
     }

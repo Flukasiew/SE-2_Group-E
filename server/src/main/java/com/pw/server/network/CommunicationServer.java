@@ -41,9 +41,9 @@ public class CommunicationServer {
 
     private Boolean endGame = false;
 
-    public CommunicationServer(int portNumber, String ipAddress, Config config) {
-        this.portNumber = portNumber;
-        this.ipAddress = ipAddress;
+    public CommunicationServer(Config config) {
+        this.portNumber = config.getPortNumber();
+        this.ipAddress = config.getIpAddress();
         this.config = config;
     }
 
@@ -96,12 +96,13 @@ public class CommunicationServer {
     }
 
     private void handleMessageFromPlayer(PlayerMessage message) {
-        LOGGER.info("Sending message to game master");
-
-        gameMasterWriter.println(message.getMessage());
+        LOGGER.info("Handling {} from player", message);
+        sendMessageToGameMasterWithRetries(message.getMessage(), config.getRetriesLimit());
     }
 
     private void handleMessageFromGameMaster(String message) throws UnrecognizedMessageException {
+        LOGGER.info("Handling {} from game master", message);
+
         GameMessageEndDTO gameMessageEndDTO = getEndGameMessage(message);
         if (gameMessageEndDTO != null) {
             endGame(gameMessageEndDTO);
@@ -120,14 +121,9 @@ public class CommunicationServer {
         }
 
         String playerGuid = (String) messageJson.get(PLAYER_GUID);
-        LOGGER.info("Sending message to player {}", playerGuid);
 
         PrintWriter playerWriter = playerWriters.get(playerGuid);
-        if (playerWriter != null) {
-            playerWriter.println(message);
-        } else {
-            LOGGER.error("No writer for {} player", playerGuid);
-        }
+        sendMessageToPlayerWithRetries(playerGuid, playerWriter, message, config.getRetriesLimit());
     }
 
     private GameMessageEndDTO getEndGameMessage(String message) {
@@ -142,5 +138,57 @@ public class CommunicationServer {
 
     private void endGame(GameMessageEndDTO gameMessageEndDTO) {
         endGame = true;
+
+        String endMessage;
+        try {
+            endMessage = MAPPER.writeValueAsString(gameMessageEndDTO);
+        } catch (Exception e) {
+            LOGGER.error("Unable to parse end game message, abruptly shutting down...", e);
+            return;
+        }
+
+        LOGGER.info("Sending end game messages to players...");
+        playerWriters.forEach((playerGuid, playerWriter) -> sendMessageToPlayerWithRetries(playerGuid, playerWriter,
+                endMessage, config.getRetriesLimit()));
+    }
+
+    private void sendMessageToPlayerWithRetries(String playerGuid, PrintWriter playerWriter, String message,
+                                                int retries) {
+        if (playerWriter != null) {
+            playerWriter.println(message);
+            if (playerWriter.checkError()) {
+                if (retries <= 0) {
+                    LOGGER.error("Unable to relay {} to player {}, breaking connection...", message, playerGuid);
+                    playerWriter.close();
+                    playerWriters.remove(playerGuid);
+                } else {
+                    LOGGER.info("Unable to relay message to player {}, {} retries left", playerGuid, retries);
+                    sendMessageToPlayerWithRetries(playerGuid, playerWriter, message, retries - 1);
+                }
+            } else {
+                LOGGER.info("Message sent to player {}", playerGuid);
+            }
+        } else {
+            LOGGER.error("No writer for {} player", playerGuid);
+        }
+    }
+
+    private void sendMessageToGameMasterWithRetries(String message, int retries) {
+        if (gameMasterWriter != null) {
+            gameMasterWriter.println(message);
+            if (gameMasterWriter.checkError()) {
+                if (retries <= 0) {
+                    LOGGER.error("Unable to relay {} to game master, abruptly shutting down...", message);
+                    endGame = true;
+                } else {
+                    LOGGER.error("Unable to relay message to game master, {} retries left...", retries);
+                    sendMessageToGameMasterWithRetries(message, retries - 1);
+                }
+            } else {
+                LOGGER.info("Message sent to game master");
+            }
+        } else {
+            LOGGER.error("No writer for game master");
+        }
     }
 }

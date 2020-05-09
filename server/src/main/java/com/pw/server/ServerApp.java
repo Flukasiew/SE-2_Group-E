@@ -8,7 +8,7 @@ public class ServerApp {
     public static void main(String[] args) throws Exception {
         Config config = Config.create();
 
-        CommunicationServer communicationServer = new CommunicationServer(1300, "localhost", config);
+        CommunicationServer communicationServer = new CommunicationServer(config);
 
         communicationServer.listen();
     }
