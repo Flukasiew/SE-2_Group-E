@@ -40,7 +40,7 @@ public class PlayerTest {
         player.board.cellsGrid[6][4].setCellState(Cell.CellState.GOAL);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
-$
+
         player.board.cellsGrid[6][4].setCellState(Cell.CellState.VALID);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);

@@ -253,15 +253,15 @@ class GameMasterBoardTest {
 
     @Test // Incomplete
     void placePiece() {
-        GameMasterBoard gameMasterBoard = new GameMasterBoard(4,2, 3);
+        GameMasterBoard gameMasterBoard = new GameMasterBoard(4,3, 3);
         PlayerDTO player_blue = new PlayerDTO();
 
         //Correct
         gameMasterBoard.setGoal(new Position( 0,0));
         player_blue.setPosition(new Position(0,0));
         assertEquals( PlacementResult.CORRECT, gameMasterBoard.placePiece(player_blue));
-        gameMasterBoard.setGoal(new Position( 1,1));
-        player_blue.setPosition(new Position(1,1));
+        gameMasterBoard.setGoal(new Position( 3,2));
+        player_blue.setPosition(new Position(3,2));
         PlacementResult out =  gameMasterBoard.placePiece(player_blue);
         assertEquals( PlacementResult.CORRECT, out);
 

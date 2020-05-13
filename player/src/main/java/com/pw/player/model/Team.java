@@ -3,10 +3,12 @@ package com.pw.player.model;
 import com.pw.common.model.TeamColor;
 import com.pw.common.model.TeamRole;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Team {
     public TeamColor color;
     public TeamRole role;
