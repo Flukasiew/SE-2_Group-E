@@ -8,7 +8,8 @@ import com.pw.common.model.Action;
 import com.pw.common.model.GameSetupStatus;
 import com.pw.server.exception.GameMasterSetupException;
 import com.pw.server.model.Config;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
-@Data
+@Getter
+@Setter
 public class GameMasterConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameMasterConnector.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -36,7 +38,8 @@ public class GameMasterConnector {
 
     private GameMasterReader gameMasterReader;
 
-    public GameMasterConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<String> messages, Config config) {
+    public GameMasterConnector(ServerSocket serverSocket, IOHandler ioHandler, BlockingQueue<String> messages,
+                               Config config) {
         this.serverSocket = serverSocket;
         this.ioHandler = ioHandler;
         this.messages = messages;
@@ -49,7 +52,7 @@ public class GameMasterConnector {
         }
     }
 
-    public void connect() throws Exception {
+    public void connect() throws GameMasterSetupException, IOException {
         LOGGER.info("Accepting game master connection...");
         try {
             gameMasterSocket = serverSocket.accept();
@@ -80,8 +83,6 @@ public class GameMasterConnector {
                 }
             }
         }
-
-        LOGGER.info("Game master setup completed");
     }
 
     private void sendSetupMessage() throws JsonProcessingException {
@@ -99,6 +100,16 @@ public class GameMasterConnector {
     }
 
     public void stopRunning() {
-        gameMasterReader.stopRunning();
+        if (gameMasterReader != null) {
+            gameMasterReader.stopRunning();
+        }
+
+        try {
+            reader.close();
+            writer.close();
+            gameMasterSocket.close();
+        } catch (IOException e) {
+            LOGGER.error("Unable to close game master connector", e);
+        }
     }
 }

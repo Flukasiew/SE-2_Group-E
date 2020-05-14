@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameMessageEndDTO;
 import com.pw.common.model.Action;
 import com.pw.common.model.GameEndResult;
-import com.pw.server.exception.UnrecognizedMessageException;
 import com.pw.server.factory.Factory;
 import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -83,7 +81,7 @@ public class CommunicationServerTest {
 
         communicationServer.listen();
 
-        assertThat(communicationServer.getEndGame()).isTrue();
+        assertThat(communicationServer.getStopServer()).isTrue();
     }
 
     @Test
@@ -117,18 +115,6 @@ public class CommunicationServerTest {
         communicationServer.listen();
 
         verify(gameMasterWriter).println(messageFromPlayer.getMessage());
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenNoPlayGuidIsProvidedInMessageFromGameMaster() throws InterruptedException {
-        String message = "abc";
-
-        doReturn(true).when(messagesFromPlayers).isEmpty();
-        doReturn(false).when(messagesFromGameMaster).isEmpty();
-
-        doReturn(message).when(messagesFromGameMaster).take();
-
-        assertThrows(UnrecognizedMessageException.class, () -> communicationServer.listen());
     }
 
     @Test

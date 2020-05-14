@@ -2,7 +2,7 @@ package com.pw.server.network;
 
 import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
-import lombok.Data;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-@Data
+@Getter
 public class PlayersConnector extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayersConnector.class);
 
@@ -72,11 +72,16 @@ public class PlayersConnector extends Thread {
     public void stopRunning() {
         running.set(false);
         try {
-            serverSocket.close();
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
         } catch (Exception e) {
-            LOGGER.error(e.getLocalizedMessage());
+            LOGGER.error("Problem with closing server socket", e);
         }
-
-        playerReaders.forEach(PlayerReader::stopRunning);
+        playerReaders.forEach(playerReader -> {
+            if (playerReader != null) {
+                playerReader.stopRunning();
+            }
+        });
     }
 }
