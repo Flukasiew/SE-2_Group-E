@@ -1,17 +1,32 @@
 package com.pw.player.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.common.model.*;
 import com.pw.player.SimpleClient;
+import javax.management.RuntimeErrorException;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.UUID;
+
+import javax.net.ssl.SSLEngineResult.Status;
+
 import java.util.Scanner;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import java.util.List;
+import java.util.ArrayList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
+	private static final ObjectMapper MAPPER = new ObjectMapper();
     public Team team;
 
     public String playerName;
@@ -31,6 +46,7 @@ public class Player {
     private int port = 1300;
     private String host = "localhost";
     private SimpleClient client;
+    private boolean on = false;
     //private SimpleClient simpleClient;
 
     public Player(TeamColor color, TeamRole role, Position position)
@@ -47,36 +63,132 @@ public class Player {
         tested = false;
 
         playerState = PlayerState.INITIALIZING;
+        LOGGER.info("Player initialized");
+        startComm();
+        listen();
+    }
+    
+    public Player()
+    {
+    	this.playerName = "Anon";
+    	this.playerGuid = UUID.randomUUID();
+    	piece = false;
+    	tested = false;
+    	playerState = PlayerState.INITIALIZING;
+    	startComm();
+    	listen();
     }
 
     public void listen()
     {
-
+    	try {
+            while (true) {
+                String msg = client.receiveMessage();
+                if(!msg.isEmpty())
+                {
+                	JSONParser parser = new JSONParser();
+                    JSONObject object = (JSONObject)parser.parse(msg);
+                    if(object.get("action")=="end")
+                    {
+                    	on = false;
+                    	if(team.getColor()==(TeamColor)object.get("result"))
+                    	{
+                    		LOGGER.info("We won!");
+                    	}
+                    	else
+                    		LOGGER.info("We lost :(");
+                    	break;
+                    }
+                    else if(object.get("action")=="ready")
+                    {
+                    	LOGGER.info("Received ready message");
+                    	object.put("status", "YES");
+                    	LOGGER.info("Sending ready status message");
+                    	client.sendMessage(object.toJSONString());
+                    }
+                    else if(object.get("action")=="start")
+                    {
+                    	LOGGER.info("Received start message");
+                    	team = new Team();
+                    	team.setColor((TeamColor)object.get("team"));
+                    	team.setRole((TeamRole)object.get("teamRole"));
+                    	team.size = (int)object.get("teamSize");
+                    	position = (Position)object.get("position");
+                    	board = (Board)object.get("board");
+                    	on = true;
+                    }
+                }
+                else if(on)
+                {
+                	makeAction();
+                }
+            }
+        }
+        catch (Exception e) {
+            LOGGER.error("Exception occured when listening", e.toString());
+        }
     }
 
     public void startComm()
     {
         try {
+        	LOGGER.info("Connecting player");
             client = new SimpleClient();
             client.startConnection(host, port);
+            client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, playerGuid.toString())));
+            LOGGER.info("Player connected");
         } catch (Exception e) {
+        	LOGGER.error(e.toString());
             e.printStackTrace();
         }
     }
 
     public void makeAction()
     {
+    	LOGGER.info("Choosing action");
         if(piece == true && tested == false)
-            testPiece();
+        	try {
+        		testPiece();
+        	} catch (Exception e) {
+        		LOGGER.error(e.toString());
+        		e.printStackTrace();
+        	}
         else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL)
-            placePiece();
+            try{
+            	placePiece();
+            } catch (Exception e) {
+            	LOGGER.error(e.toString());
+            	e.printStackTrace();
+            }
         else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE)
-            takePiece();
+            try {
+            	takePiece();
+            } catch (Exception e) {
+            	LOGGER.error(e.toString());
+            	e.printStackTrace();
+            }
         else if(howManyUnknown() >= 5)
-            discover();
+        	try {
+        		discover();
+        	} catch (Exception e) {
+        		LOGGER.error(e.toString());
+        		e.printStackTrace();
+        	}
         else if(piece == true && tested == true ||
                 piece == false)
-            move(chooseDirection());
+            try {
+            	move(chooseDirection());
+            } catch (Exception e) {
+            	LOGGER.error(e.toString());
+	            e.printStackTrace();
+	        }
+        else
+        	try {
+        		discover();
+        	} catch (Exception e) {
+        		LOGGER.error(e.toString());
+        		e.printStackTrace();
+        	}
     }
 
     private int howManyUnknown()
@@ -109,6 +221,7 @@ public class Player {
 
     private Position.Direction chooseDirection()
     {
+    	LOGGER.info("Player chooses direction");
         int cellToMove[] = {-1, 1};
 
         if(piece == true && tested == true)
@@ -184,145 +297,192 @@ public class Player {
         int y = position.y;
 
         if(x<=0&&dir==Position.Direction.LEFT)
+        {
+        	LOGGER.info("Cannot move left");
             return false;
+        }
         if(x>=board.boardWidth-1&&dir==Position.Direction.RIGHT)
+        {
+        	LOGGER.info("Cannot move right");
             return false;
+        }
         if(y<=0&&dir==Position.Direction.UP)
+        {
+        	LOGGER.info("Cannot move up");
             return false;
+        }
         if(y>=board.boardHeight-1&&dir==Position.Direction.DOWN)
+        {
+        	LOGGER.info("Cannot move down");
             return false;
+        }
         if(team.color == TeamColor.RED&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
+        {
+        	LOGGER.info("Approached blue goal area, cannot move down");
             return false;
+        }
         if(team.color == TeamColor.BLUE&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        {
+        	LOGGER.info("Approached red goal area, cannot move down");
             return false;
+        }
         return true;
     }
 
-    private void discover()
-    {
-        int x = position.x;
-        int y = position.y;
-        JSONObject message = new JSONObject();
-        message.put("action", ActionType.DISCOVER);
-        message.put("playerGuid",playerGuid);
-        JSONObject response = sendMessage(message);
-        //JSONParser parser = new JSONParser();
-        //message = (JSONObject)parser.parse(response);
-        String stat = (String)response.get("status");
-        String res = (String)response.get("test");
-        if(stat=="OK")
-        {
-            if(res=="")
-                singleDiscover(x,y);
-            singleDiscover(x-1,y);
-            singleDiscover(x-1,y+1);
-            singleDiscover(x-1,y-1);
-            singleDiscover(x+1,y);
-            singleDiscover(x+1,y-1);
-            singleDiscover(x+1,y+1);
-            singleDiscover(x,y+1);
-            singleDiscover(x,y-1);
-            //lastAction = ActionType.DISCOVER;
-        }
+    private void discover() throws IOException, ParseException {
+	    {
+	    	LOGGER.info("Discovering");
+	        int x = position.x;
+	        int y = position.y;
+	        
+	        JSONObject message = new JSONObject();
+	        message.put("action", ActionType.DISCOVER);
+	        message.put("playerGuid",playerGuid);
+	        message.put("position", position);
+	        client.sendMessage(message.toJSONString());
+	        
+	        JSONParser parser = new JSONParser();
+	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String stat = (String)response.get("status");
+	        if(stat=="OK")
+	        {
+	        	List<Field> fields = new ArrayList<>();
+	        	//ObjectMapper mapper = new ObjectMapper();
+	        	fields = (List<Field>)response.get("fields");
+	            for(Field f : fields)
+	            {
+	            	board.cellsGrid[f.getPosition().x][f.getPosition().y].setCellState(f.cell.getCellState());
+	            }
+	            //lastAction = ActionType.DISCOVER;
+	        }
+	        LOGGER.info("Discovered");
+	    }
     }
 
-    private void move(Position.Direction direction)
-    {
-        JSONObject message = new JSONObject();
-        message.put("action", ActionType.MOVE);
-        message.put("playerGuid",playerGuid);
-        message.put("direction", direction);
-        JSONObject response = sendMessage(message);
-        //JSONParser parser = new JSONParser();
-        //message = (JSONObject)parser.parse(response);
-        String stat = (String)response.get("status");
-        if(stat=="OK")
-        {
-            Position oldPosition;
-            oldPosition = position;
-            position.changePosition(direction);
-
-            if (CanMove(direction))
-                lastAction = ActionType.MOVE;
-            else
-                position = oldPosition;
-        }
+    private void move(Position.Direction direction) throws ParseException, IOException{
+	    {
+	    	LOGGER.info("Moving");
+	        JSONObject message = new JSONObject();
+	        message.put("action", ActionType.MOVE);
+	        message.put("playerGuid",playerGuid);
+	        message.put("direction", direction);
+	        client.sendMessage(message.toJSONString());
+	        JSONParser parser = new JSONParser();
+	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        //JSONParser parser = new JSONParser();
+	        //message = (JSONObject)parser.parse(response);
+	        String stat = (String)response.get("status");
+	        if(stat=="OK")
+	        {
+	            Position oldPosition;
+	            oldPosition = position;
+	            position.changePosition(direction);
+	
+	            if (CanMove(direction))
+	                lastAction = ActionType.MOVE;
+	            else
+	                position = oldPosition;
+	        }
+	        LOGGER.info("Moved");
+	    }
     }
 
-    private void takePiece()
-    {
-        lastAction = ActionType.PICKUP;
-        JSONObject message = new JSONObject();
-        message.put("action", ActionType.PICKUP);
-        message.put("playerGuid",playerGuid);
-        JSONObject response = sendMessage(message);
-        //JSONParser parser = new JSONParser();
-        //message = (JSONObject)parser.parse(response);
-        String stat = (String)response.get("status");
-        if(stat=="OK")
-        {
-            board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
-            piece = true;
-        }
-        else
-            return;
+    private void takePiece() throws IOException, ParseException {
+	    {
+	    	LOGGER.info("Picking up piece");
+	        lastAction = ActionType.PICKUP;
+	        JSONObject message = new JSONObject();
+	        message.put("action", ActionType.PICKUP);
+	        message.put("playerGuid",playerGuid);
+	        client.sendMessage(message.toJSONString());
+	        JSONParser parser = new JSONParser();
+	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String stat = (String)response.get("status");
+	        if(stat=="OK")
+	        {
+	            board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
+	            piece = true;
+	            LOGGER.info("Picked up piece");
+	        }
+	        else
+	        {
+	        	LOGGER.info("Failed to pick up piece");
+	            return;
+	        }
+	    }
     }
 
-    private void testPiece()
-    {
-        JSONObject message = new JSONObject();
-        message.put("action", ActionType.TEST);
-        message.put("playerGuid",playerGuid);
-        JSONObject response = sendMessage(message);
-        //JSONParser parser = new JSONParser();
-        //message = (JSONObject)parser.parse(response);
-        String stat = (String)response.get("status");
-        String res = (String)response.get("test");
-        if(stat=="OK")
-            if(res=="false")
-            {
-                lastAction = ActionType.DESTROY;
-                piece = false;
-                tested = false;
-            }
-            else if(res=="true")
-            {
-                lastAction = ActionType.TEST;
-                tested = true;
-                return;
-            }
-            else return;
-        else return;
+    private void testPiece() throws IOException, ParseException {
+	    {
+	    	LOGGER.info("Testing piece");
+	        JSONObject message = new JSONObject();
+	        message.put("action", ActionType.TEST);
+	        message.put("playerGuid",playerGuid);
+	        client.sendMessage(message.toJSONString());
+	        JSONParser parser = new JSONParser();
+	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String stat = (String)response.get("status");
+	        String res = (String)response.get("test");
+	        if(stat=="OK")
+	            if(res=="false")
+	            {
+	            	LOGGER.info("Piece is a sham");
+	                lastAction = ActionType.DESTROY;
+	                piece = false;
+	                tested = false;
+	            }
+	            else if(res=="true")
+	            {
+	            	LOGGER.info("Piece is good");
+	                lastAction = ActionType.TEST;
+	                tested = true;
+	                return;
+	            }
+	            else return;
+	        else
+	        {
+	        	LOGGER.info("Cannot test");
+	        	return;
+	        }
+	    }
     }
 
-    private void placePiece()
-    {
-        JSONObject message = new JSONObject();
-        message.put("action", ActionType.PLACE);
-        message.put("playerGuid",playerGuid);
-        JSONObject response = sendMessage(message);
-        //JSONParser parser = new JSONParser();
-        //message = (JSONObject)parser.parse(response);
-        String stat = (String)response.get("status");
-        String res = (String)response.get("test");
-        if(stat=="OK")
-        {
-            if(res=="correct")
-            {
-                lastAction = ActionType.PLACE;
-                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.GOAL);
-                piece = false;
-                tested = false;
-            }
-            else
-            {
-                lastAction = ActionType.PLACE;
-                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
-                piece = false;
-                tested = false;
-            }
-        }
-        else return;
+    private void placePiece() throws IOException, ParseException {
+	    {
+	    	LOGGER.info("Placing piece");
+	        JSONObject message = new JSONObject();
+	        message.put("action", ActionType.PLACE);
+	        message.put("playerGuid",playerGuid);
+	        client.sendMessage(message.toJSONString());
+	        JSONParser parser = new JSONParser();
+	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String stat = (String)response.get("status");
+	        String res = (String)response.get("test");
+	        if(stat=="OK")
+	        {
+	            if(res=="correct")
+	            {
+	                lastAction = ActionType.PLACE;
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.GOAL);
+	                piece = false;
+	                tested = false;
+	                LOGGER.info("Goal completed");
+	            }
+	            else
+	            {
+	                lastAction = ActionType.PLACE;
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
+	                piece = false;
+	                tested = false;
+	                LOGGER.info("Piece wasted");
+	            }
+	        }
+	        else 
+	        {
+	        	LOGGER.info("Cannot place piece");
+	        	return;
+	        }
+	    }
     }
 
     public void testAction(ActionType action, Position.Direction direction)
@@ -330,16 +490,36 @@ public class Player {
         switch(action)
         {
             case TEST:
-                testPiece();
+            	try {
+            		testPiece();
+            	} catch (Exception e) {
+            		LOGGER.error(e.toString());
+            		e.printStackTrace();
+            	}
                 break;
             case MOVE:
-                move(direction);
-                break;
+            	try {
+            		move(direction);
+            	} catch (Exception e) {
+            		LOGGER.error(e.toString());
+            		e.printStackTrace();
+            	}
+            	break;
             case PICKUP:
-                takePiece();
+            	try {
+            		takePiece();
+            	} catch (Exception e) {
+            		LOGGER.error(e.toString());
+            		e.printStackTrace();
+            	}
                 break;
             case PLACE:
-                placePiece();
+            	try {
+            		placePiece();
+            	} catch (Exception e) {
+            		LOGGER.error(e.toString());
+            		e.printStackTrace();
+            	}
                 break;
         }
     }
@@ -399,5 +579,28 @@ public class Player {
                 }
         }
         return response;
+    }
+    
+    private JSONObject messenger(String message) throws ParseException, IOException {
+	    {
+	    	JSONParser jsonParser = new JSONParser();
+	        JSONObject msg = (JSONObject)jsonParser.parse(message);
+	        String action = (String)msg.get("action");
+	        switch(action)
+	        {
+	        case "setup":
+	        	msg.put("status", "OK");
+	        	break;
+	        case "connect":
+	        	msg.put("status", "OK");
+	        	break;
+	        case "ready":
+	        	msg.put("status", "YES");
+	        	break;
+	        default:
+	        	break;
+	        }
+	        return msg;
+	    }
     }
 }
