@@ -24,17 +24,22 @@
 		<dependencies>
 			<dependency>
 				<groupId>com.pw</groupId>
+				<artifactId>common</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.pw</groupId>
+				<artifactId>server</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.pw</groupId>
 				<artifactId>game-master</artifactId>
 				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.pw</groupId>
 				<artifactId>player</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
-			</dependency>
-			<dependency>
-				<groupId>com.pw</groupId>
-				<artifactId>common</artifactId>
 				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
@@ -108,6 +113,7 @@
 		<module>player</module>
 		<module>common</module>
 		<module>server</module>
+		<module>integration-tests</module>
 	</modules>
 
 </project>
