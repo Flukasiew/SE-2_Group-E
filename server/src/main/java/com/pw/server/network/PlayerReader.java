@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.server.exception.PlayerSetupException;
 import com.pw.server.model.PlayerMessage;
-import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Data
+@Getter
 public class PlayerReader extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerReader.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -84,5 +84,16 @@ public class PlayerReader extends Thread {
 
     public void stopRunning() {
         running.set(false);
+
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            LOGGER.error("Unable to close player writer", e);
+        }
     }
 }

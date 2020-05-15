@@ -12,8 +12,6 @@ import com.pw.server.model.Config;
 import com.pw.server.network.CommunicationServer;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,7 +19,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServerIntegrationTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerIntegrationTest.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private CommunicationServer communicationServer;
@@ -36,7 +33,7 @@ public class ServerIntegrationTest {
     }
 
     @Test
-    public void shouldConnectAndSetupGameMaster() throws Exception {
+    public void shouldConnectAndSetupGameMaster() {
         Thread gameMaster = new Thread(() -> {
             try {
                 SimpleClient client = new SimpleClient();
@@ -47,6 +44,7 @@ public class ServerIntegrationTest {
                 client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
 
                 client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
+                client.stopConnection();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -73,6 +71,7 @@ public class ServerIntegrationTest {
                         .isNotNull().extracting(PlayerConnectMessageDTO::getPlayerGuid).isIn(playerGuidA, playerGuidB);
 
                 client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
+                client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -85,7 +84,10 @@ public class ServerIntegrationTest {
                 Thread.sleep(100);
 
                 client.startConnection(host, port);
-                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, playerGuidA)));
+                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port,
+                        playerGuidA)));
+
+                client.stopConnection();
             } catch (Exception e) {
                 error = true;
                 e.printStackTrace();
@@ -100,7 +102,10 @@ public class ServerIntegrationTest {
                 Thread.sleep(100);
 
                 client.startConnection(host, port);
-                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, playerGuidB)));
+                client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port,
+                        playerGuidB)));
+
+                client.stopConnection();
             } catch (Exception e) {
                 error = true;
                 e.printStackTrace();
@@ -140,6 +145,7 @@ public class ServerIntegrationTest {
                 Thread.sleep(200);
 
                 client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
+                client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -157,6 +163,7 @@ public class ServerIntegrationTest {
                 client.sendMessage(messageFromPlayer);
 
                 assertThat(client.receiveMessage()).isEqualTo(messageFromGameMaster);
+                client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -169,7 +176,7 @@ public class ServerIntegrationTest {
     }
 
     @Test
-    public void shouldShutDownWhenUnableToMessageGameMaster() throws Exception {
+    public void shouldShutDownWhenUnableToMessageGameMaster() throws InterruptedException {
         String playerGuid = "a";
         Thread gameMaster = new Thread(() -> {
             try {
@@ -178,7 +185,6 @@ public class ServerIntegrationTest {
                 client.receiveMessage();
                 client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
 
-                LOGGER.info("Shutting down game master...");
                 client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -198,6 +204,7 @@ public class ServerIntegrationTest {
                 Thread.sleep(100);
 
                 client.sendMessage("FWEFWEVEVWVQ");
+                client.stopConnection();
             } catch (Exception e) {
                 error = true;
                 e.printStackTrace();
@@ -209,5 +216,9 @@ public class ServerIntegrationTest {
         player.start();
 
         communicationServer.listen();
+
+        Thread.sleep(500);
+
+        assertThat(communicationServer.getStopServer()).isTrue();
     }
 }

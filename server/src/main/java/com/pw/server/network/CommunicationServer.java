@@ -2,14 +2,17 @@ package com.pw.server.network;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameMessageEndDTO;
+import com.pw.server.exception.GameMasterSetupException;
 import com.pw.server.exception.UnrecognizedMessageException;
 import com.pw.server.factory.Factory;
 import com.pw.server.model.Config;
 import com.pw.server.model.PlayerMessage;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.util.Map;
@@ -17,7 +20,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-@Data
+@Getter
+@Setter
 public class CommunicationServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommunicationServer.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -39,7 +43,7 @@ public class CommunicationServer {
     private PrintWriter gameMasterWriter;
     private Map<String, PrintWriter> playerWriters = new ConcurrentHashMap<>();
 
-    private Boolean endGame = false;
+    private Boolean stopServer = false;
 
     public CommunicationServer(Config config) {
         this.portNumber = config.getPortNumber();
@@ -47,19 +51,23 @@ public class CommunicationServer {
         this.config = config;
     }
 
-    public void listen() throws Exception {
+    public void listen() {
         LOGGER.info("Listening started");
-        ServerSocket serverSocket = factory.createServerSocket(portNumber);
 
-        setupGameMaster(serverSocket);
-        setupPlayers(serverSocket);
+        try {
+            ServerSocket serverSocket = factory.createServerSocket(portNumber);
+            setupGameMaster(serverSocket);
+            setupPlayers(serverSocket);
+            relayMessages();
+        } catch (Exception e) {
+            LOGGER.error("Abruptly stopping server...", e);
+        }
 
-        relayMessages();
-
+        close();
         LOGGER.info("Listening ended");
     }
 
-    private void setupGameMaster(ServerSocket serverSocket) throws Exception {
+    private void setupGameMaster(ServerSocket serverSocket) throws IOException, GameMasterSetupException {
         gameMasterConnector = factory.createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster,
                 config);
         gameMasterConnector.connect();
@@ -77,20 +85,21 @@ public class CommunicationServer {
         LOGGER.info("Players setup initiated");
     }
 
-    public void relayMessages() throws InterruptedException, UnrecognizedMessageException {
+    public void relayMessages() throws InterruptedException {
         LOGGER.info("Relaying messages started");
 
-        while (!endGame) {
+        while (!stopServer) {
             if (!messagesFromPlayers.isEmpty()) {
                 handleMessageFromPlayer(messagesFromPlayers.take());
             }
             if (!messagesFromGameMaster.isEmpty()) {
-                handleMessageFromGameMaster(messagesFromGameMaster.take());
+                try {
+                    handleMessageFromGameMaster(messagesFromGameMaster.take());
+                } catch (UnrecognizedMessageException e) {
+                    LOGGER.error("Unrecognized message from game master", e);
+                }
             }
         }
-
-        gameMasterConnector.stopRunning();
-        playersConnector.stopRunning();
 
         LOGGER.info("Relaying messages ended");
     }
@@ -137,13 +146,13 @@ public class CommunicationServer {
     }
 
     private void endGame(GameMessageEndDTO gameMessageEndDTO) {
-        endGame = true;
+        stopServer = true;
 
         String endMessage;
         try {
             endMessage = MAPPER.writeValueAsString(gameMessageEndDTO);
         } catch (Exception e) {
-            LOGGER.error("Unable to parse end game message, abruptly shutting down...", e);
+            LOGGER.error("Unable to parse end game message", e);
             return;
         }
 
@@ -179,7 +188,7 @@ public class CommunicationServer {
             if (gameMasterWriter.checkError()) {
                 if (retries <= 0) {
                     LOGGER.error("Unable to relay {} to game master, abruptly shutting down...", message);
-                    endGame = true;
+                    stopServer = true;
                 } else {
                     LOGGER.error("Unable to relay message to game master, {} retries left...", retries);
                     sendMessageToGameMasterWithRetries(message, retries - 1);
@@ -189,6 +198,15 @@ public class CommunicationServer {
             }
         } else {
             LOGGER.error("No writer for game master");
+        }
+    }
+
+    private void close() {
+        if (gameMasterConnector != null) {
+            gameMasterConnector.stopRunning();
+        }
+        if (playersConnector != null) {
+            playersConnector.stopRunning();
         }
     }
 }
