@@ -30,7 +30,7 @@ public class Player {
     public Team team;
 
     public String playerName;
-    private UUID playerGuid;
+    public UUID playerGuid;
     private PlayerState playerState;
 
     public ActionType lastAction;
@@ -55,7 +55,7 @@ public class Player {
         team.setColor(color);
         team.setRole(role);
 
-        client = new SimpleClient();
+        this.client = client;
 
         this.playerName = "Anon";
         this.playerGuid = UUID.randomUUID();
@@ -74,6 +74,7 @@ public class Player {
     {
     	this.playerName = "Anon";
     	this.playerGuid = UUID.randomUUID();
+
     	piece = false;
     	tested = false;
     	playerState = PlayerState.INITIALIZING;
@@ -345,7 +346,7 @@ public class Player {
 	        JSONParser parser = new JSONParser();
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
 	        String stat = (String)response.get("status");
-	        if(stat=="OK")
+	        if(stat.equals("OK"))
 	        {
 	        	List<Field> fields = new ArrayList<>();
 	        	//ObjectMapper mapper = new ObjectMapper();
@@ -373,7 +374,7 @@ public class Player {
 	        //JSONParser parser = new JSONParser();
 	        //message = (JSONObject)parser.parse(response);
 	        String stat = (String)response.get("status");
-	        if(stat=="OK")
+	        if(stat.equals("OK"))
 	        {
 	            Position oldPosition;
 	            oldPosition = position;
@@ -399,7 +400,7 @@ public class Player {
 	        JSONParser parser = new JSONParser();
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
 	        String stat = (String)response.get("status");
-	        if(stat=="OK")
+	        if(stat.equals("OK"))
 	        {
 	            board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
 	            piece = true;
@@ -424,7 +425,7 @@ public class Player {
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
 	        String stat = (String)response.get("status");
 	        String res = (String)response.get("test");
-	        if(stat=="OK")
+	        if(stat.equals("OK"))
 	            if(res=="false")
 	            {
 	            	LOGGER.info("Piece is a sham");
@@ -459,7 +460,7 @@ public class Player {
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
 	        String stat = (String)response.get("status");
 	        String res = (String)response.get("test");
-	        if(stat=="OK")
+	        if(stat.equals("OK"))
 	        {
 	            if(res=="correct")
 	            {
