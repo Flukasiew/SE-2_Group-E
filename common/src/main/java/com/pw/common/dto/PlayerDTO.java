@@ -8,7 +8,13 @@ import com.pw.common.model.TeamRole;
 import javax.swing.*;
 import java.util.UUID;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+@Data
+@EqualsAndHashCode
 public class PlayerDTO {
     public UUID playerGuid;
     public TeamRole playerTeamRole;

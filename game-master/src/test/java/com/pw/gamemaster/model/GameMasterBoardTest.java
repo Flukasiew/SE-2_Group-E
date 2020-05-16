@@ -9,6 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.Before;
 import org.mockito.Mock;
 
+import javax.swing.plaf.synth.SynthTextAreaUI;
+import java.awt.*;
+import java.io.Writer;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -343,16 +347,123 @@ class GameMasterBoardTest {
 
     @Test
     void checkWinCondition() {
+        GameMasterBoard gameMasterBoard = new GameMasterBoard(16,4,16);
+        Position pos;
+        PlayerDTO dto = new PlayerDTO();
 
+        //becouse Blue has zero goals hence all are filled
+        boolean ret = gameMasterBoard.checkWinCondition(TeamColor.BLUE);
+        assertEquals(true,ret);
+
+
+        gameMasterBoard.setGoal(new Position(3,1));
+        gameMasterBoard.setGoal(new Position(1,2));
+        gameMasterBoard.setGoal(new Position(2,3));
+        gameMasterBoard.setGoal(new Position(1,0));
+
+        dto.setPosition(new Position(3,1));
+        gameMasterBoard.placePiece(dto);
+        dto.setPosition(new Position(1,2));
+        gameMasterBoard.placePiece(dto);
+        dto.setPosition(new Position(2,3));
+        gameMasterBoard.placePiece(dto);
+        //because not all goal filled
+        ret = gameMasterBoard.checkWinCondition(TeamColor.BLUE);
+        assertEquals(false,ret);
+
+        dto.setPosition(new Position(1,0));
+        gameMasterBoard.placePiece(dto);
+        //all goals are filled
+        ret = gameMasterBoard.checkWinCondition(TeamColor.BLUE);
+        assertEquals(true,ret);
+
+        //becouse red has zero goals hence all are filled
+        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        assertEquals(true,ret);
+
+        gameMasterBoard.setGoal(new Position(13,22));
+        gameMasterBoard.setGoal(new Position(10,21));
+        gameMasterBoard.setGoal(new Position(1,21));
+        //because not all goals are filled
+        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        assertEquals(false,ret);
+
+        dto.setPosition(new Position(13,22));
+        gameMasterBoard.placePiece(dto);
+        dto.setPosition(new Position(10,21));
+        gameMasterBoard.placePiece(dto);
+        //because not all goals are filled
+        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        assertEquals(false,ret);
+
+        dto.setPosition(new Position(1,21));
+        gameMasterBoard.placePiece(dto);
+        //because all goals are filled
+        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        assertEquals(true,ret);
     }
 
     @Test
     void discover() {
+        GameMasterBoard gameMasterBoard = new GameMasterBoard(16,4,16);
+        List<Field> ret = gameMasterBoard.discover(new Position(6,5));
+        for(int i=0;i<ret.size();i++)
+        {
+            assertEquals(-1,ret.get(i).getCell().distance);
+        }
+
+        Position new_piece_position;
+        new_piece_position = new Position(5,5);
+        gameMasterBoard.piecesPosition.add(new_piece_position);
+        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+
+        new_piece_position = new Position(5,6);
+        gameMasterBoard.piecesPosition.add(new_piece_position);
+        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+
+        new_piece_position = new Position(9,6);
+        gameMasterBoard.piecesPosition.add(new_piece_position);
+        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+
+        ret = gameMasterBoard.discover(new Position(6,5));
+        int[] outs = {2,2,3,1,1,2,0,0,1};
+        for(int i=0;i<ret.size();i++)
+        {
+            assertEquals(outs[i],ret.get(i).getCell().distance);
+        }
+
+
 
     }
 
     @Test
     void manhattanDistanceTwoPoints() {
+        GameMasterBoard gameMasterBoard = new GameMasterBoard(16,4,16);
+        Point a;
+        Point b;
 
+        a = new Point(1,2);
+        b = new Point (3,2);
+        assertEquals(2,gameMasterBoard.manhattanDistanceTwoPoints(a,b));
+
+        a = new Point(1,2);
+        b = new Point (1,2);
+        assertEquals(0,gameMasterBoard.manhattanDistanceTwoPoints(a,b));
+
+        a = new Point(1,2);
+        b = new Point (7,3);
+        assertEquals(7,gameMasterBoard.manhattanDistanceTwoPoints(a,b));
+
+        a = new Point(8,3);
+        b = new Point (5,11);
+        assertEquals(11,gameMasterBoard.manhattanDistanceTwoPoints(a,b));
+
+        a = new Point(1,2);
+        b = new Point (1,8);
+        assertEquals(6,gameMasterBoard.manhattanDistanceTwoPoints(a,b));
+
+        a = new Point(15,1);
+        b = new Point (7,2);
+        assertEquals(9,gameMasterBoard.manhattanDistanceTwoPoints(a,b));
     }
 }
