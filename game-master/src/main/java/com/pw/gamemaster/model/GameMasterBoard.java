@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 
 public class GameMasterBoard extends Board {
-    private Set<Position> piecesPosition;
+    public Set<Position> piecesPosition;
     public HashSet<UUID> piecesTested;
 
     public GameMasterBoard(int boardWidth, int goalAreaHeight, int taskAreaHeight) {
@@ -202,6 +202,24 @@ public class GameMasterBoard extends Board {
                 new_pos.setX(position.getX()-i);
                 new_pos.setY(position.getY()-j);
                 if(new_pos.getX()<this.boardWidth && new_pos.getX()>0 && new_pos.y>0 && new_pos.getY()<this.boardHeight){
+                    int min_dist = this.boardWidth+this.boardHeight;
+                    Point curr = new Point(new_pos.x,new_pos.y);
+                    for(int a = 0; a<this.boardWidth;a++)
+                    {
+                        for(int b=this.goalAreaHeight; b<this.boardHeight-this.goalAreaHeight;b++)
+                        {
+                            //System.out.println(this.getField(new Position(a,b)).getCell().cellState);
+                            if(this.getField(new Position(a,b)).getCell().cellState == Cell.CellState.PIECE)
+                            {
+                                Point temp = new Point(a,b);
+                                //System.out.println(manhattanDistanceTwoPoints(curr,temp));
+                                if(manhattanDistanceTwoPoints(curr,temp)<min_dist)
+                                    min_dist=manhattanDistanceTwoPoints(curr,temp);
+                            }
+                        }
+                    }
+                    if(min_dist == this.boardWidth+this.boardHeight) min_dist =-1;
+                    this.getField(new_pos).getCell().distance = min_dist;
                     discovered_fields.add(this.getField(new_pos));
                 }
             }
