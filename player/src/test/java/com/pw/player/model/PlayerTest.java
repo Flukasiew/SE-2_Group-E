@@ -2,12 +2,17 @@ package com.pw.player.model;
 
 import com.pw.common.model.*;
 import com.pw.player.model.Player;
-import org.junit.jupiter.api.Test;
+import com.pw.player.SimpleClient;
+import com.pw.server.network.CommunicationServer;
+import org.junit.Test;
 import org.junit.Before;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -17,10 +22,20 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class PlayerTest {
 
-    @Test
-    void PickupPieceTest()
+    @Mock
+    private SimpleClient client;
+
+    @Before
+    public void prepare() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,4));
+        initMocks(this);
+        doNothing().when(client).startConnection(any(), any());
+    }
+
+    @Test
+    public void PickupPieceTest() throws Exception
+    {
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,4), client);
         player.board = new Board(10, 4, 8);
         player.board.cellsGrid[6][4].setCellState(Cell.CellState.PIECE);
         player.testAction(ActionType.PICKUP, null);
@@ -29,9 +44,9 @@ public class PlayerTest {
 
 
     @Test
-    void PickupPieceTestEmpty()
+    public void PickupPieceTestEmpty()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,6));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,6), client);
         player.board = new Board(10, 4, 8);
         player.board.cellsGrid[6][4].setCellState(Cell.CellState.EMPTY);
         player.testAction(ActionType.PICKUP, null);
@@ -51,9 +66,9 @@ public class PlayerTest {
     }
 
     @Test
-    void PlacePieceTest()
+    public void PlacePieceTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(2,2));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(2,2), client);
         player.board = new Board(10, 4, 8);
         player.board.cellsGrid[6][4].setCellState(Cell.CellState.GOAL);
         player.testAction(ActionType.PLACE, null);
@@ -62,90 +77,90 @@ public class PlayerTest {
     }
 
     @Test
-    void MoveRightTest()
+    public void MoveRightTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(4,6));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(4,6), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.RIGHT);
         assertEquals(new Position(5,6).x, player.position.x);
     }
 
     @Test
-    void FalseMoveRightTest()
+    public void FalseMoveRightTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(9,6));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(9,6), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.RIGHT);
         assertEquals(new Position(9,6).x, player.position.x);
     }
 
     @Test
-    void MoveLeftTest()
+    public void MoveLeftTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(4,6));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(4,6), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.LEFT);
         assertEquals(new Position(3,6).x, player.position.x);
     }
 
     @Test
-    void FalseMoveLeftTest()
+    public void FalseMoveLeftTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(0,6));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(0,6), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.LEFT);
         assertEquals(new Position(0,6).x, player.position.x);
     }
 
     @Test
-    void MoveUpTest()
+    public void MoveUpTest()
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,6));
+        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,6), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.UP);
         assertEquals(new Position(3,5).y, player.position.y);
     }
 
     @Test
-    void FalseMoveUpTest()
+    public void FalseMoveUpTest()
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,0));
+        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,0), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.UP);
         assertEquals(new Position(3,0).y, player.position.y);
     }
 
     @Test
-    void FalseMoveUpBlueTest()
+    public void FalseMoveUpBlueTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,4));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,4), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.UP);
         assertEquals(new Position(3,4).y, player.position.y);
     }
 
     @Test
-    void MovDownTest()
+    public void MovDownTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,13));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,13), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.DOWN);
         assertEquals(new Position(3,14).y, player.position.y);
     }
 
     @Test
-    void FalseMoveDownTest()
+    public void FalseMoveDownTest()
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,15));
+        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,15), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.DOWN);
         assertEquals(new Position(3,15).y, player.position.y);
     }
 
     @Test
-    void FalseMoveDownRedTest()
+    public void FalseMoveDownRedTest()
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,11));
+        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,11), client);
         player.board = new Board(10, 4, 8);
         player.testAction(ActionType.MOVE, Position.Direction.DOWN);
         assertEquals(new Position(3,11).y, player.position.y);

@@ -49,11 +49,13 @@ public class Player {
     private boolean on = false;
     //private SimpleClient simpleClient;
 
-    public Player(TeamColor color, TeamRole role, Position position)
+    public Player(TeamColor color, TeamRole role, Position position, SimpleClient client)
     {
         team = new Team();
         team.setColor(color);
         team.setRole(role);
+
+        client = new SimpleClient();
 
         this.playerName = "Anon";
         this.playerGuid = UUID.randomUUID();
@@ -133,7 +135,6 @@ public class Player {
     {
         try {
         	LOGGER.info("Connecting player");
-            client = new SimpleClient();
             client.startConnection(host, port);
             client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, playerGuid.toString())));
             LOGGER.info("Player connected");
