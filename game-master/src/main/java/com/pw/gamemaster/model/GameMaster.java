@@ -46,7 +46,7 @@ public class GameMaster {
 
     private SimpleClient simpleClient;
     private String logFilePath = "log_gm.txt";
-    private Dictionary<UUID, PlayerDTO> playersDTO;
+    private Map<UUID, PlayerDTO> playersDTO;
     private Map<UUID, Boolean> readyStatus;
     private List<UUID> connectedPlayers;
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -65,6 +65,7 @@ public class GameMaster {
         teamRedGuids = new ArrayList<UUID>();
         connectedPlayers = new ArrayList<UUID>();
         readyStatus = new HashMap<UUID, Boolean>();
+        playersDTO = new HashMap<UUID, PlayerDTO>();
         this.loadConfigurationFromJson(path.toString());
         LOGGER.info("configuration loaded");
         simpleClient = new SimpleClient();
@@ -73,29 +74,29 @@ public class GameMaster {
         listen();
     }
 
-    public void startGame() {
-        if(readyStatus.size()>=teamRedGuids.size()+teamBlueGuids.size()){
-            this.placePlayers();
-            PlayerDTO playerDTO = new PlayerDTO();
-            for (UUID player:connectedPlayers) {
-                JSONObject jsonObject = new JSONObject();
-                JSONObject positionJsonObject = new JSONObject();
-                JSONObject boardJsonObject = new JSONObject();
-                playerDTO = playersDTO.get(player);
-                jsonObject.put("action", "start");
-                jsonObject.put("playerGuid", player.toString());
-                jsonObject.put("team", playerDTO.playerTeamColor.toString());
-                jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
-                jsonObject.put("teamSize", teamBlueGuids.size());
-                positionJsonObject.put("x", playerDTO.playerPosition.x);
-                positionJsonObject.put("y", playerDTO.playerPosition.y);
-                jsonObject.put("position", positionJsonObject);
-                boardJsonObject.put("boardWidth", this.board.boardWidth);
-                boardJsonObject.put("taskAreaHeight", this.board.taskAreaHeight);
-                boardJsonObject.put("goalAreaHeigth", this.board.goalAreaHeight);
-                jsonObject.put("board", boardJsonObject);
-            }
+    public void startGame() throws IOException {
+        this.placePlayers();
+        PlayerDTO playerDTO = new PlayerDTO();
+        for (UUID player:connectedPlayers) {
+            JSONObject jsonObject = new JSONObject();
+            JSONObject positionJsonObject = new JSONObject();
+            JSONObject boardJsonObject = new JSONObject();
+            playerDTO = playersDTO.get(player);
+            jsonObject.put("action", "start");
+            jsonObject.put("playerGuid", player.toString());
+            jsonObject.put("team", playerDTO.playerTeamColor.toString());
+            jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
+            jsonObject.put("teamSize", teamBlueGuids.size());
+            positionJsonObject.put("x", playerDTO.playerPosition.x);
+            positionJsonObject.put("y", playerDTO.playerPosition.y);
+            jsonObject.put("position", positionJsonObject);
+            boardJsonObject.put("boardWidth", this.board.boardWidth);
+            boardJsonObject.put("taskAreaHeight", this.board.taskAreaHeight);
+            boardJsonObject.put("goalAreaHeigth", this.board.goalAreaHeight);
+            jsonObject.put("board", boardJsonObject);
+            simpleClient.sendMessage(jsonObject.toJSONString());
         }
+
         LOGGER.info("Game started");
     }
 
@@ -117,20 +118,20 @@ public class GameMaster {
         }
         LOGGER.info("Game setup completed");
     }
-    
+
     public boolean checkReadyGame() {
         if ((teamRedGuids.size()+teamBlueGuids.size())== 2*this.configuration.maxTeamSize &&
                 2*this.configuration.maxTeamSize == connectedPlayers.size()) {
-            for (UUID id: connectedPlayers) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("action", "ready");
-                jsonObject.put("playerGuid", id.toString());
-                try {
-                    simpleClient.sendMessage(jsonObject.toJSONString());
-                } catch (IOException e) {
-                    LOGGER.error("Error Ready" + e.toString(), e);
-                }
-            }
+//            for (UUID id: connectedPlayers) {
+//                JSONObject jsonObject = new JSONObject();
+//                jsonObject.put("action", "ready");
+//                jsonObject.put("playerGuid", id.toString());
+//                try {
+//                    simpleClient.sendMessage(jsonObject.toJSONString());
+//                } catch (IOException e) {
+//                    LOGGER.error("Error Ready" + e.toString(), e);
+//                }
+//            }
             return true;
         }
         return false;
@@ -168,6 +169,8 @@ public class GameMaster {
             }
             startGame();
             LOGGER.info("Pre while2");
+            board.checkWinCondition(TeamColor.RED);
+            board.checkWinCondition(TeamColor.BLUE);
             while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
                 LOGGER.info("Pre recive");
                 String msg = simpleClient.receiveMessage();
