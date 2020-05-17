@@ -47,7 +47,6 @@ public class Player {
     private String host = "localhost";
     private SimpleClient client;
     private boolean on = false;
-    //private SimpleClient simpleClient;
 
     public Player(TeamColor color, TeamRole role, Position position, SimpleClient client)
     {
@@ -66,6 +65,8 @@ public class Player {
 
         playerState = PlayerState.INITIALIZING;
         LOGGER.info("Player initialized");
+        playerState = PlayerState.ACTIVE;
+
         startComm();
         listen();
     }
@@ -77,8 +78,14 @@ public class Player {
 
     	piece = false;
     	tested = false;
+
+    	this.client = new SimpleClient();
+
     	playerState = PlayerState.INITIALIZING;
-    	startComm();
+        LOGGER.info("Player initialized");
+        playerState = PlayerState.ACTIVE;
+
+        startComm();
     	listen();
     }
 
