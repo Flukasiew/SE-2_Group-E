@@ -276,7 +276,7 @@ public class GameMaster {
                 }
                 for(int j=0;j<this.configuration.boardTaskHeight+this.configuration.boardGoalHeight;j++) {
                     PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
-                    tmp.playerTeamColor=TeamColor.RED;
+                    tmp.playerTeamColor=TeamColor.BLUE;
                     if(bluePlayersToPlace<=0) {
                         break;
                     }
