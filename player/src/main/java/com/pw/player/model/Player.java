@@ -44,7 +44,7 @@ public class Player {
     private InetAddress ipAddress;
     private int portNumber; // we can think about using InetSocketAddress from java.net
     private int port = 1300;
-    private String host = "localhost";
+    private String host = "0.0.0.0";
     private SimpleClient client;
     private boolean on = false;
 

@@ -6,7 +6,7 @@ import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.*;
 import com.pw.common.model.Action;
-import com.pw.gamemaster.SimpleClient;
+import com.pw.common.model.SimpleClient;
 import com.pw.gamemaster.exception.GameSetupException;
 import com.pw.gamemaster.exception.PlayerNotConnectedException;
 import com.pw.gamemaster.exception.UnexpectedActionException;
@@ -27,6 +27,8 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
+
+import static java.lang.Thread.sleep;
 
 
 public class GameMaster {
@@ -100,6 +102,7 @@ public class GameMaster {
     private void listen() throws IOException, ParseException, UnexpectedActionException {
         LOGGER.info("Game master has started listening");
         try {
+            sleep(1000);
             LOGGER.info("Pre while1");
             while(board == null)
             {
