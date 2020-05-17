@@ -27,7 +27,7 @@ public class IntegrationTest {
 		server = new Thread(() -> ServerApp.main(null));
 		gameMaster = new Thread(() -> {
 			try {
-				GameMasterApp.main(null);
+				GameMasterApp.main("0.0.0.0",1300);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -80,7 +80,7 @@ public class IntegrationTest {
 	}
 
 	@SneakyThrows
-	private void startThreads() {
+	private void startThreads() throws InterruptedException {
 		server.start();
 		Thread.sleep(200);
 		gameMaster.start();
