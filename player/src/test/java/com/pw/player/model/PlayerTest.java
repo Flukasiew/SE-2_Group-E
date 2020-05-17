@@ -38,6 +38,32 @@ public class PlayerTest {
         initMocks(this);
         doNothing().when(client).startConnection(host, port);
     }
+    
+    @Test
+    public void StartMessageTest() throws Exception
+    {
+    	Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,4), client);
+    	JSONObject tester = new JSONObject();
+    	JSONObject position = new JSONObject();
+    	JSONObject board = new JSONObject();
+    	position.put("x", 6);
+    	position.put("y", 4);
+    	board.put("boardWidth", 10);
+    	board.put("taskAreaHeight", 8);
+    	board.put("goalAreaHeight", 4);
+        tester.put("action", "start");
+        tester.put("playerGuid", player.playerGuid.toString());
+        tester.put("team", "BLUE");
+        tester.put("teamRole", TeamRole.MEMBER.toString());
+        tester.put("teamSize", (int)4);
+        tester.put("position", position);
+        tester.put("board", board);
+        doReturn(tester.toJSONString()).when(client).receiveMessage();
+        player.listen();
+        //assertEquals(new Board(10, 4, 8), player.board);
+        assertEquals(player.board.boardHeight, 16);
+        assertEquals(player.board.boardWidth, 10);
+    }
 
     @Test
     public void PickupPieceTest() throws Exception

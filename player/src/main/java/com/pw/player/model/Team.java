@@ -32,6 +32,22 @@ public class Team {
     {
         this.role = role;
     }
+    
+    public void setColor(String color)
+    {
+    	if(TeamColor.BLUE.toString().equals(color))
+    		this.color = TeamColor.BLUE;
+    	else if(TeamColor.RED.toString().equals(color))
+    		this.color = TeamColor.RED;
+    }
+    
+    public void setRole(String role)
+    {
+    	if(TeamRole.MEMBER.toString().equals(role))
+    		this.role = TeamRole.MEMBER;
+    	else if(TeamRole.LEADER.toString().equals(role))
+    		this.role = TeamRole.LEADER;
+    }
 
     public TeamRole getRole()
     {

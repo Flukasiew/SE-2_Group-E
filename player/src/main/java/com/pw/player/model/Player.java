@@ -94,8 +94,8 @@ public class Player {
     	try {
             while (true) {
                 String msg = client.receiveMessage();
-                LOGGER.info(msg);
-                if(!msg.isEmpty())
+                //LOGGER.info(msg);
+                if(msg!=null && !msg.isEmpty())
                 {
                 	JSONParser parser = new JSONParser();
                     JSONObject object = (JSONObject)parser.parse(msg);
@@ -117,17 +117,23 @@ public class Player {
                     	LOGGER.info("Sending ready status message");
                     	client.sendMessage(object.toJSONString());
                     }
-                    else if(object.get("action")=="start")
+                    else if(object.get("action").equals("start")&&on==false)
                     {
                     	LOGGER.info("Received start message");
                     	team = new Team();
-                    	team.setColor((TeamColor)object.get("team"));
-                    	team.setRole((TeamRole)object.get("teamRole"));
-                    	team.size = (int)object.get("teamSize");
-                    	position = (Position)object.get("position");
-                    	board = (Board)object.get("board");
+                    	team.setColor((String)object.get("team"));
+                    	team.setRole((String)object.get("teamRole"));
+                    	team.size = ((Long)object.get("teamSize")).intValue();
+                    	JSONObject newposition = (JSONObject)object.get("position");
+                    	position = new Position(((Long)newposition.get("x")).intValue(), ((Long)newposition.get("y")).intValue());
+                    	JSONObject newboard = (JSONObject)object.get("board");
+                    	board = new Board(((Long)newboard.get("boardWidth")).intValue(), ((Long)newboard.get("goalAreaHeight")).intValue(), ((Long)newboard.get("taskAreaHeight")).intValue());
+                    	//board = (Board)object.get("board");
+                    	//board = new Board(object.get("board").get("boardWidth"), object.getJSONObject("board").get("goalHeight"));
                     	on = true;
                     }
+                    else if(object.get("action").equals("start")&&on==true)
+                    	break;
                 }
                 else if(on)
                 {
@@ -137,6 +143,7 @@ public class Player {
         }
         catch (Exception e) {
             LOGGER.error("Exception occured when listening", e.toString());
+            LOGGER.info(e.toString());
         }
     }
 
@@ -177,7 +184,7 @@ public class Player {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(howManyUnknown() >= 5)
+        else if(howManyUnknown())
         	try {
         		discover();
         	} catch (Exception e) {
@@ -201,32 +208,67 @@ public class Player {
         	}
     }
 
-    private int howManyUnknown()
+    private boolean howManyUnknown()
     {
         int counter = 0;
+        int total = 1;
         int x = position.x;
         int y = position.y;
 
         if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
             ++counter;
-        if(board.cellsGrid[x-1][y].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x-1][y+1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x-1][y-1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x+1][y].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x+1][y-1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x+1][y+1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x][y+1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x][y-1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
+        if(x>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x-1][y].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x>0&&y<board.boardHeight-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x-1][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x>0&&y>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x-1][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x<board.boardWidth-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x+1][y].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x<board.boardWidth-1&&y>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x+1][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x<board.boardWidth-1&&y<board.boardHeight-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x+1][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(y<board.boardHeight-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(y>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
 
-        return counter;
+        if(counter>total/2)
+        	return true;
+        else return false;
     }
 
     private Position.Direction chooseDirection()
@@ -373,12 +415,18 @@ public class Player {
 	    {
 	    	LOGGER.info("Moving");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.MOVE);
-	        message.put("playerGuid",playerGuid);
-	        message.put("direction", direction);
+	        message.put("action", ActionType.MOVE.toString());
+	        message.put("playerGuid",playerGuid.toString());
+	        message.put("direction", direction.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        LOGGER.info("Received move status");
+	        JSONObject response = (JSONObject)parser.parse(msg);
 	        //JSONParser parser = new JSONParser();
 	        //message = (JSONObject)parser.parse(response);
 	        String stat = (String)response.get("status");
