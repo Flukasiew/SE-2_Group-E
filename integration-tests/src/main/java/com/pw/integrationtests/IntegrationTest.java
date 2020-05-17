@@ -17,7 +17,7 @@ import lombok.SneakyThrows;
 
 public class IntegrationTest {
 
-	private int playersCount = 0;
+	private int playersCount = 8;
 	private Thread server;
 	private Thread gameMaster;
 	private List<Thread> players;
