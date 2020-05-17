@@ -1,6 +1,7 @@
 package com.pw.integrationtests;
 
 import com.pw.gamemaster.GameMasterApp;
+import com.pw.gamemaster.exception.UnexpectedActionException;
 import com.pw.player.PlayerApp;
 import com.pw.server.ServerApp;
 import org.json.simple.parser.ParseException;
@@ -22,10 +23,10 @@ public class IntegrationTest {
         Thread server = new Thread(() -> ServerApp.main(null));
         Thread gameMaster = new Thread(() -> {
             try {
-                GameMasterApp.main(null);
+                GameMasterApp.main("0.0.0.0", 1300);
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (ParseException e) {
+            } catch (ParseException | UnexpectedActionException e) {
                 e.printStackTrace();
             }
         });
