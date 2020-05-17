@@ -268,8 +268,6 @@ public class GameMaster {
         int bluePlayersToPlace = teamBlueGuids.size();
         int redPlayersToPlace = teamRedGuids.size();
         UUID currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
-        PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
-        tmp.playerTeamColor=TeamColor.BLUE;
         Position placed = new Position();
         try {
             for(int i=0;i<this.configuration.boardWidth;i++) {
@@ -277,6 +275,8 @@ public class GameMaster {
                     break;
                 }
                 for(int j=0;j<this.configuration.boardTaskHeight+this.configuration.boardGoalHeight;j++) {
+                    PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
+                    tmp.playerTeamColor=TeamColor.RED;
                     if(bluePlayersToPlace<=0) {
                         break;
                     }
@@ -302,6 +302,8 @@ public class GameMaster {
                     break;
                 }
                 for(int j=this.board.boardHeight-1;j>=0;j--) {
+                    PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
+                    tmp.playerTeamColor=TeamColor.RED;
                     if(redPlayersToPlace<=0) {
                         break;
                     }
