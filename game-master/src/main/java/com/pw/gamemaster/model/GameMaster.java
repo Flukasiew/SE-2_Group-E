@@ -100,11 +100,17 @@ public class GameMaster {
     }
     
     public boolean checkReadyGame() {
-        if ((teamRedGuids.size()+teamBlueGuids.size())==connectedPlayers.size()) {
+        if ((teamRedGuids.size()+teamBlueGuids.size())== 2*this.configuration.maxTeamSize &&
+                2*this.configuration.maxTeamSize == connectedPlayers.size()) {
             for (UUID id: connectedPlayers) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("action", "ready");
-                jsonObject.put("playerGuid", id);
+                jsonObject.put("playerGuid", id.toString());
+                try {
+                    simpleClient.sendMessage(jsonObject.toJSONString());
+                } catch (IOException e) {
+                    LOGGER.error("Error Ready" + e.toString(), e);
+                }
             }
             return true;
         }
@@ -128,6 +134,22 @@ public class GameMaster {
                     LOGGER.info("Message returned", jsonObject.toJSONString());
                 }
             }
+
+            while(!checkReadyGame())
+            {
+                LOGGER.info("Pre recive ready");
+                String msg = simpleClient.receiveMessage();
+                LOGGER.info("post recive ready");
+                if (msg != null && !msg.isEmpty()) {
+                    LOGGER.info("Message received", msg);
+                    JSONObject jsonObject = messageHandler(msg);
+                    simpleClient.sendMessage(jsonObject.toJSONString());
+                    LOGGER.info("Message returned", jsonObject.toJSONString());
+                }
+            }
+
+
+
             LOGGER.info("Pre while2");
             while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
                 LOGGER.info("Pre recive");
