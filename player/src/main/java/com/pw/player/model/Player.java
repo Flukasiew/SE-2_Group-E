@@ -44,10 +44,9 @@ public class Player {
     private InetAddress ipAddress;
     private int portNumber; // we can think about using InetSocketAddress from java.net
     private int port = 1300;
-    private String host = "localhost";
+    private String host = "0.0.0.0";
     private SimpleClient client;
     private boolean on = false;
-    //private SimpleClient simpleClient;
 
     public Player(TeamColor color, TeamRole role, Position position, SimpleClient client)
     {
@@ -66,6 +65,8 @@ public class Player {
 
         playerState = PlayerState.INITIALIZING;
         LOGGER.info("Player initialized");
+        playerState = PlayerState.ACTIVE;
+
         startComm();
         listen();
     }
@@ -77,8 +78,14 @@ public class Player {
 
     	piece = false;
     	tested = false;
+
+    	this.client = new SimpleClient();
+
     	playerState = PlayerState.INITIALIZING;
-    	startComm();
+        LOGGER.info("Player initialized");
+        playerState = PlayerState.ACTIVE;
+
+        startComm();
     	listen();
     }
 
@@ -87,6 +94,7 @@ public class Player {
     	try {
             while (true) {
                 String msg = client.receiveMessage();
+                LOGGER.info(msg);
                 if(!msg.isEmpty())
                 {
                 	JSONParser parser = new JSONParser();
