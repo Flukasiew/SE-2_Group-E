@@ -76,6 +76,25 @@ public class GameMaster {
     public void startGame() {
         if(readyStatus.size()>=teamRedGuids.size()+teamBlueGuids.size()){
             this.placePlayers();
+            PlayerDTO playerDTO = new PlayerDTO();
+            for (UUID player:connectedPlayers) {
+                JSONObject jsonObject = new JSONObject();
+                JSONObject positionJsonObject = new JSONObject();
+                JSONObject boardJsonObject = new JSONObject();
+                playerDTO = playersDTO.get(player);
+                jsonObject.put("action", "start");
+                jsonObject.put("playerGuid", player.toString());
+                jsonObject.put("team", playerDTO.playerTeamColor.toString());
+                jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
+                jsonObject.put("teamSize", teamBlueGuids.size());
+                positionJsonObject.put("x", playerDTO.playerPosition.x);
+                positionJsonObject.put("y", playerDTO.playerPosition.y);
+                jsonObject.put("position", positionJsonObject);
+                boardJsonObject.put("boardWidth", this.board.boardWidth);
+                boardJsonObject.put("taskAreaHeight", this.board.taskAreaHeight);
+                boardJsonObject.put("goalAreaHeigth", this.board.goalAreaHeight);
+                jsonObject.put("board", boardJsonObject);
+            }
         }
         LOGGER.info("Game started");
     }
@@ -147,9 +166,7 @@ public class GameMaster {
                     LOGGER.info("Message returned", jsonObject.toJSONString());
                 }
             }
-
-
-
+            startGame();
             LOGGER.info("Pre while2");
             while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
                 LOGGER.info("Pre recive");
@@ -267,6 +284,7 @@ public class GameMaster {
                         continue;
                     }
                     bluePlayersToPlace--;
+                    playersDTO.put(tmp.playerGuid, tmp);
                     currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
                 }
             }
@@ -291,6 +309,7 @@ public class GameMaster {
                         continue;
                     }
                     redPlayersToPlace--;
+                    playersDTO.put(tmp.playerGuid, tmp);
                     currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
                 }
             }
@@ -382,7 +401,7 @@ public class GameMaster {
                     status = "OK";
                     positionJSON.put("x", newPosition.x);
                     positionJSON.put("y", newPosition.y);
-                    msg.put("position", positionJSON);
+                    msg.put("position", positionJSON.toJSONString());
                 }
                 msg.put("status", status);
                 return msg;
