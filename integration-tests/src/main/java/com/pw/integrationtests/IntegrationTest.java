@@ -1,11 +1,17 @@
 package com.pw.integrationtests;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,6 +27,8 @@ public class IntegrationTest {
 	private Thread server;
 	private Thread gameMaster;
 	private List<Thread> players;
+
+
 
 	@Before
 	public void prepare() {
@@ -39,15 +47,9 @@ public class IntegrationTest {
 
 	@Test
 	public void shouldCompleteGame() throws InterruptedException {
-		startThreads();
-
-		while (server.isAlive()) {
-			Thread.sleep(200);
-		}
-		Thread.sleep(200);
-
-		assertThat(gameMaster.isAlive()).isFalse();
-		players.forEach(player -> assertThat(player.isAlive()).isFalse());
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.invokeAll(newArrayList(), 10, TimeUnit.MINUTES); // Timeout of 10 minutes.
+		executor.shutdown();
 	}
 
 	@Test
