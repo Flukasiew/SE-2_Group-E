@@ -143,7 +143,7 @@ public class GameMaster {
         try {
             sleep(1000);
             LOGGER.info("Pre while1");
-            while(board == null && System.currentTimeMillis()-startTime<3000)
+            while(board == null && System.currentTimeMillis()-startTime<10000)
             {
                 //LOGGER.info("Pre recive1");
                 String msg = simpleClient.receiveMessage();
@@ -156,7 +156,7 @@ public class GameMaster {
                     startTime = System.currentTimeMillis();
                 }
             }
-            while(!checkReadyGame() && System.currentTimeMillis()-startTime<1000)
+            while(!checkReadyGame() && System.currentTimeMillis()-startTime<10000)
             {
                 //LOGGER.info("Pre recive ready");
                 String msg = simpleClient.receiveMessage();
@@ -171,7 +171,7 @@ public class GameMaster {
             }
             startGame();
             LOGGER.info("Pre while2");
-            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)  && System.currentTimeMillis()-startTime<3000){
+            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)  && System.currentTimeMillis()-startTime<10000){
                 //LOGGER.info("Pre recive");
                 String msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive");
