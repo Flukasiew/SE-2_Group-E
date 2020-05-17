@@ -94,6 +94,7 @@ public class Player {
     	try {
             while (true) {
                 String msg = client.receiveMessage();
+                LOGGER.info(msg);
                 if(!msg.isEmpty())
                 {
                 	JSONParser parser = new JSONParser();
