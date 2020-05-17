@@ -2,8 +2,11 @@ package com.pw.gamemaster.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.*;
+import com.pw.common.model.Action;
+import com.pw.gamemaster.SimpleClient;
 import com.pw.gamemaster.exception.GameSetupException;
 import com.pw.gamemaster.exception.PlayerNotConnectedException;
 import com.pw.gamemaster.exception.UnexpectedActionException;
@@ -21,6 +24,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 
@@ -43,6 +47,7 @@ public class GameMaster {
     private Dictionary<UUID, PlayerDTO> playersDTO;
     private Map<UUID, Boolean> readyStatus;
     private List<UUID> connectedPlayers;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public GameMaster() {
         teamBlueGuids = new ArrayList<UUID>();
@@ -52,13 +57,17 @@ public class GameMaster {
         LOGGER.info("Game master created");
     }
 
-    public GameMaster(String host, int portNumber) throws IOException, ParseException, UnexpectedActionException {
+    public GameMaster(String host, int portNumber, Path path) throws IOException, ParseException, UnexpectedActionException {
+        LOGGER.info("Game master created");
         teamBlueGuids = new ArrayList<UUID>();
         teamRedGuids = new ArrayList<UUID>();
         connectedPlayers = new ArrayList<UUID>();
         readyStatus = new HashMap<UUID, Boolean>();
+        this.loadConfigurationFromJson(path.toString());
+        LOGGER.info("configuration loaded");
         simpleClient = new SimpleClient();
         simpleClient.startConnection(host, portNumber);
+        LOGGER.info("connection started", host, portNumber);
         listen();
     }
 

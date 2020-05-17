@@ -35,12 +35,14 @@ public class GameMasterApp {
 		double meh = (Double)jsonObject.get("shamProbability");
 		int meh2 = ((Long)jsonObject.get("maxTeamSize")).intValue();
 		System.out.println(meh2);*/
-		GameMaster xd = new GameMaster(host, port);
 		String path = "gmconf.json";
 		Path p1 = Paths.get("gmconf.json");
-		System.out.println(p1.toAbsolutePath().toString());
-		xd.loadConfigurationFromJson(p1.toString());
-		LOGGER.info("configuration loaded");
+		GameMaster xd = new GameMaster(host, port, p1);
+//		String path = "gmconf.json";
+//		Path p1 = Paths.get("gmconf.json");
+//		System.out.println(p1.toAbsolutePath().toString());
+//		xd.loadConfigurationFromJson(p1.toString());
+//		LOGGER.info("configuration loaded");
 		LOGGER.info("app finished");
 	}
 }
