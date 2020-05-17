@@ -98,6 +98,18 @@ public class GameMaster {
         }
         LOGGER.info("Game setup completed");
     }
+    
+    public boolean checkReadyGame() {
+        if ((teamRedGuids.size()+teamBlueGuids.size())==connectedPlayers.size()) {
+            for (UUID id: connectedPlayers) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("action", "ready");
+                jsonObject.put("playerGuid", id);
+            }
+            return true;
+        }
+        return false;
+    }
 
     private void listen() throws IOException, ParseException, UnexpectedActionException {
         LOGGER.info("Game master has started listening");
