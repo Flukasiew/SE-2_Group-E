@@ -91,9 +91,25 @@ public class GameMaster {
     private void listen() throws IOException, ParseException, UnexpectedActionException {
         LOGGER.info("Game master has started listening");
         try {
-            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
+            LOGGER.info("Pre while1");
+            while(board == null)
+            {
+                LOGGER.info("Pre recive1");
                 String msg = simpleClient.receiveMessage();
-                if (!msg.isEmpty()) {
+                LOGGER.info("post recive " + msg);
+                if (msg != null && !msg.isEmpty()) {
+                    LOGGER.info("Message received", msg);
+                    JSONObject jsonObject = messageHandler(msg);
+                    simpleClient.sendMessage(jsonObject.toJSONString());
+                    LOGGER.info("Message returned", jsonObject.toJSONString());
+                }
+            }
+            LOGGER.info("Pre while2");
+            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
+                LOGGER.info("Pre recive");
+                String msg = simpleClient.receiveMessage();
+                LOGGER.info("post recive");
+                if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
@@ -102,7 +118,7 @@ public class GameMaster {
             }
         }
         catch (Exception e) {
-            LOGGER.error("Exception occured when listening", e.toString());
+            LOGGER.error("Exception occured when listening " + e.toString(), e.toString());
         }
         LOGGER.info("Game master has finished listening");
     }
