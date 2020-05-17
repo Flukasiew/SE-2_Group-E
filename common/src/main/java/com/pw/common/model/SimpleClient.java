@@ -22,7 +22,8 @@ public class SimpleClient {
     }
 
     public String receiveMessage() throws IOException {
-        return in.readLine();
+        if(in.ready()) return in.readLine();
+        return null;
     }
 
     public void stopConnection() throws IOException {

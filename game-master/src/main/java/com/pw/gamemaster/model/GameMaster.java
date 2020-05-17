@@ -92,7 +92,7 @@ public class GameMaster {
             jsonObject.put("position", positionJsonObject);
             boardJsonObject.put("boardWidth", this.board.boardWidth);
             boardJsonObject.put("taskAreaHeight", this.board.taskAreaHeight);
-            boardJsonObject.put("goalAreaHeigth", this.board.goalAreaHeight);
+            boardJsonObject.put("goalAreaHeight", this.board.goalAreaHeight);
             jsonObject.put("board", boardJsonObject);
             simpleClient.sendMessage(jsonObject.toJSONString());
         }
@@ -138,48 +138,49 @@ public class GameMaster {
     }
 
     private void listen() throws IOException, ParseException, UnexpectedActionException {
+        long startTime = System.currentTimeMillis();
         LOGGER.info("Game master has started listening");
         try {
             sleep(1000);
             LOGGER.info("Pre while1");
-            while(board == null)
+            while(board == null && System.currentTimeMillis()-startTime<3000)
             {
-                LOGGER.info("Pre recive1");
+                //LOGGER.info("Pre recive1");
                 String msg = simpleClient.receiveMessage();
-                LOGGER.info("post recive " + msg);
+                //LOGGER.info("post recive " + msg);
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
                     LOGGER.info("Message returned", jsonObject.toJSONString());
+                    startTime = System.currentTimeMillis();
                 }
             }
-
-            while(!checkReadyGame())
+            while(!checkReadyGame() && System.currentTimeMillis()-startTime<1000)
             {
-                LOGGER.info("Pre recive ready");
+                //LOGGER.info("Pre recive ready");
                 String msg = simpleClient.receiveMessage();
-                LOGGER.info("post recive ready");
+                //LOGGER.info("post recive ready");
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
                     LOGGER.info("Message returned", jsonObject.toJSONString());
+                    startTime = System.currentTimeMillis();
                 }
             }
             startGame();
             LOGGER.info("Pre while2");
-            board.checkWinCondition(TeamColor.RED);
-            board.checkWinCondition(TeamColor.BLUE);
-            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)) {
-                LOGGER.info("Pre recive");
+            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)  && System.currentTimeMillis()-startTime<3000){
+                //LOGGER.info("Pre recive");
                 String msg = simpleClient.receiveMessage();
-                LOGGER.info("post recive");
+                //LOGGER.info("post recive");
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
                     LOGGER.info("Message returned", jsonObject.toJSONString());
+                    startTime = System.currentTimeMillis();
                 }
             }
         }
@@ -288,6 +289,9 @@ public class GameMaster {
                     }
                     bluePlayersToPlace--;
                     playersDTO.put(tmp.playerGuid, tmp);
+                    if(bluePlayersToPlace<=0) {
+                        break;
+                    }
                     currentUuid = teamBlueGuids.get(teamBlueGuids.size()-bluePlayersToPlace);
                 }
             }
@@ -315,6 +319,9 @@ public class GameMaster {
                     }
                     redPlayersToPlace--;
                     playersDTO.put(tmp.playerGuid, tmp);
+                    if(redPlayersToPlace<=0) {
+                        break;
+                    }
                     currentUuid = teamRedGuids.get(teamRedGuids.size()-redPlayersToPlace);
                 }
             }
