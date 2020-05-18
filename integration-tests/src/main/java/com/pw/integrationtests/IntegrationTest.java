@@ -1,10 +1,8 @@
 package com.pw.integrationtests;
 
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-import java.util.stream.IntStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,74 +15,40 @@ import lombok.SneakyThrows;
 
 public class IntegrationTest {
 
-	private int playersCount = 8;
-	private Thread server;
-	private Thread gameMaster;
-	private List<Thread> players;
+	private static final int playerCount = 8;
+	private static final int totalThreadCount = totalThreadCount(playerCount);
+
+	private Runnable server = () -> ServerApp.main(null);
+	private Runnable gameMaster = () -> {
+		try {
+			GameMasterApp.main("0.0.0.0", 1300);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	};
+	private Runnable player = () -> PlayerApp.main(null);
 
 	@Before
 	public void prepare() {
-		server = new Thread(() -> ServerApp.main(null));
-		gameMaster = new Thread(() -> {
-			try {
-				GameMasterApp.main("0.0.0.0",1300);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		players = IntStream.range(0, playersCount)
-				.mapToObj(i -> new Thread(() -> PlayerApp.main(null)))
-				.collect(toList());
-	}
-
-	@Test
-	public void shouldCompleteGame() throws InterruptedException {
-		startThreads();
-
-		while (server.isAlive()) {
-			Thread.sleep(200);
-		}
-		Thread.sleep(200);
-
-		assertThat(gameMaster.isAlive()).isFalse();
-		players.forEach(player -> assertThat(player.isAlive()).isFalse());
-	}
-
-	@Test
-	public void shouldEndGameWhenUnableReachGameMaster() throws InterruptedException {
-		startThreads();
-
-		Thread.sleep(2000);
-
-		gameMaster.stop();
-
-		Thread.sleep(200);
-
-		assertThat(server.isAlive()).isFalse();
-		players.forEach(player -> assertThat(player.isAlive()).isFalse());
-	}
-
-	@Test
-	public void shouldContinueGameWhenPlayerDisconnects() throws InterruptedException {
-		startThreads();
-
-		players.get(0).stop();
-
-		Thread.sleep(200);
-
-		assertThat(server.isAlive()).isTrue();
-		assertThat(gameMaster.isAlive()).isTrue();
-		for (int i = 1; i < players.size(); i++) {
-			assertThat(players.get(i).isAlive()).isTrue();
-		}
 	}
 
 	@SneakyThrows
-	private void startThreads() throws InterruptedException {
-		server.start();
-		Thread.sleep(200);
-		gameMaster.start();
-		Thread.sleep(200);
-		players.forEach(Thread::start);
+	@Test
+	public void shouldCompleteGame() {
+		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
+		executor.submit(server);
+		executor.submit(gameMaster);
+		for (int i = 0; i < playerCount; i++) {
+			executor.submit(player);
+		}
+
+		executor.awaitTermination(5, TimeUnit.MINUTES);
+	}
+
+	private static int totalThreadCount(int playerCount) {
+		int serverThreadCount = 5 + playerCount;
+		int gameMasterThreadCount = 3;
+		int playersThreadCount = playerCount * 2;
+		return serverThreadCount + gameMasterThreadCount + playersThreadCount;
 	}
 }
