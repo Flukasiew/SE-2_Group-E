@@ -139,6 +139,7 @@ public class GameMaster {
 
     private void listen() throws IOException, ParseException, UnexpectedActionException {
         long startTime = System.currentTimeMillis();
+        String msg = "empty";
         LOGGER.info("Game master has started listening");
         try {
             sleep(1000);
@@ -146,7 +147,7 @@ public class GameMaster {
             while(board == null && System.currentTimeMillis()-startTime<10000)
             {
                 //LOGGER.info("Pre recive1");
-                String msg = simpleClient.receiveMessage();
+                msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive " + msg);
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -159,7 +160,7 @@ public class GameMaster {
             while(!checkReadyGame() && System.currentTimeMillis()-startTime<10000)
             {
                 //LOGGER.info("Pre recive ready");
-                String msg = simpleClient.receiveMessage();
+                msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive ready");
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -173,7 +174,7 @@ public class GameMaster {
             LOGGER.info("Pre while2");
             while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)  && System.currentTimeMillis()-startTime<10000){
                 //LOGGER.info("Pre recive");
-                String msg = simpleClient.receiveMessage();
+                msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive");
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -185,7 +186,7 @@ public class GameMaster {
             }
         }
         catch (Exception e) {
-            LOGGER.error("Exception occured when listening " + e.toString(), e.toString());
+            LOGGER.error("Exception occured when listening " + e.toString() +" from " + msg, e.toString());
         }
         LOGGER.info("Game master has finished listening");
     }
@@ -384,20 +385,20 @@ public class GameMaster {
                 return msg;
 
             // game action msgs
-            case "move":
+            case "MOVE":
                 String directionString = (String)msg.get("direction");
                 Position.Direction direction;
                 switch (directionString) {
-                    case "Up":
+                    case "UP":
                         direction = Position.Direction.UP;
                         break;
-                    case "Down":
+                    case "DOWN":
                         direction = Position.Direction.DOWN;
                         break;
-                    case "Left":
+                    case "LEFT":
                         direction = Position.Direction.LEFT;
                         break;
-                    case "Right":
+                    case "RIGHT":
                         direction = Position.Direction.RIGHT;
                         break;
                     default:
