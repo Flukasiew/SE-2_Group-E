@@ -22,8 +22,12 @@ public class SimpleClient {
     }
 
     public String receiveMessage() throws IOException {
+    	String temp;
     	if(in.ready())
-    		return in.readLine();
+    	{
+    		temp = in.readLine();
+    		return temp;
+    	}
     	else return null;
     }
 

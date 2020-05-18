@@ -389,9 +389,9 @@ public class Player {
 	        int y = position.y;
 	        
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.DISCOVER);
-	        message.put("playerGuid",playerGuid);
-	        message.put("position", position);
+	        JSONObject position = new JSONObject();
+	        message.put("action", "discover");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        
 	        JSONParser parser = new JSONParser();
@@ -416,9 +416,9 @@ public class Player {
 	    {
 	    	LOGGER.info("Moving");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.MOVE.toString());
+	        message.put("action", "move");
 	        message.put("playerGuid",playerGuid.toString());
-	        message.put("direction", direction.toString());
+	        message.put("direction", direction);
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
 	        String msg = null;
@@ -451,8 +451,8 @@ public class Player {
 	    	LOGGER.info("Picking up piece");
 	        lastAction = ActionType.PICKUP;
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.PICKUP);
-	        message.put("playerGuid",playerGuid);
+	        message.put("action", "pickup");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
@@ -475,8 +475,8 @@ public class Player {
 	    {
 	    	LOGGER.info("Testing piece");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.TEST);
-	        message.put("playerGuid",playerGuid);
+	        message.put("action", "test");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
@@ -510,8 +510,8 @@ public class Player {
 	    {
 	    	LOGGER.info("Placing piece");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.PLACE);
-	        message.put("playerGuid",playerGuid);
+	        message.put("action", "place");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
 	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
