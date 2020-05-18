@@ -207,9 +207,9 @@ public class GameMasterBoard extends Board {
             for(int j=-1;j<=1;j++)
             {
                 Position new_pos = new Position();
-                new_pos.setX(position.getX()-i);
-                new_pos.setY(position.getY()-j);
-                if(new_pos.getX()<this.boardWidth && new_pos.getX()>0 && new_pos.y>0 && new_pos.getY()<this.boardHeight){
+                new_pos.setX(position.getX()+i);
+                new_pos.setY(position.getY()+j);
+                if(new_pos.getX()<this.boardWidth && new_pos.getX()>=0 && new_pos.y>=0 && new_pos.getY()<this.boardHeight){
                     int min_dist = this.boardWidth+this.boardHeight;
                     Point curr = new Point(new_pos.x,new_pos.y);
                     for(int a = 0; a<this.boardWidth;a++)
