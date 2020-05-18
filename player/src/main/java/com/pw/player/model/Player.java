@@ -68,7 +68,7 @@ public class Player {
         playerState = PlayerState.ACTIVE;
 
         startComm();
-        listen();
+        //listen();
     }
     
     public Player()
@@ -86,7 +86,7 @@ public class Player {
         playerState = PlayerState.ACTIVE;
 
         startComm();
-    	listen();
+    	//listen();
     }
 
     public void listen()
@@ -194,6 +194,7 @@ public class Player {
         else if(piece == true && tested == true ||
                 piece == false)
             try {
+            	discover();
             	move(chooseDirection());
             } catch (Exception e) {
             	LOGGER.error(e.toString());
