@@ -2,6 +2,8 @@ package com.pw.gamemaster.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.pw.common.dto.GameMessageEndDTO;
 import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.*;
@@ -140,6 +142,7 @@ public class GameMaster {
     private void listen() throws IOException, ParseException, UnexpectedActionException {
         long startTime = System.currentTimeMillis();
         String msg = "empty";
+        Boolean redWin = false, blueWin = false;
         LOGGER.info("Game master has started listening");
         try {
             sleep(1000);
@@ -172,7 +175,7 @@ public class GameMaster {
             }
             startGame();
             LOGGER.info("Pre while2");
-            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)  && System.currentTimeMillis()-startTime<10000){
+            while (!(redWin = board.checkWinCondition(TeamColor.RED)) && !(blueWin=board.checkWinCondition(TeamColor.BLUE))  && System.currentTimeMillis()-startTime<10000){
                 //LOGGER.info("Pre recive");
                 msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive");
@@ -184,6 +187,15 @@ public class GameMaster {
                     startTime = System.currentTimeMillis();
                 }
             }
+            GameMessageEndDTO gameMessageEndDTO;
+            if(blueWin) {
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
+            } else if (redWin) {
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.RED);
+            } else {
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
+            }
+            simpleClient.sendMessage(gameMessageEndDTO.toString());
         }
         catch (Exception e) {
             LOGGER.error("Exception occured when listening " + e.toString() +" from " + msg, e.toString());
