@@ -407,9 +407,12 @@ public class GameMaster {
                 PlayerDTO playerDTO = playersDTO.get(uuid);
                 Position newPosition = board.playerMove(playerDTO, direction);
                 JSONObject positionJSON = new JSONObject();
-                if (newPosition.x == -1 && newPosition.y == -1) {
+                if (newPosition == null) {
                     status = "DENIED";
                     msg.put("position", null);
+                    LOGGER.info("X:" + playerDTO.playerPosition.getX() +" Y: " + playerDTO.playerPosition.getY()+" "
+                            +"Width:" + board.boardWidth + "Height" +board.boardHeight + "Color" + playerDTO.playerTeamColor
+                    +"H-GAH: " +(board.boardHeight - board.goalAreaHeight) + "direction: "+directionString);
                 } else {
                     status = "OK";
                     positionJSON.put("x", newPosition.x);
@@ -426,6 +429,7 @@ public class GameMaster {
                     status = "OK";
                 } else {
                     status = "DENIED";
+
                 }
                 msg.put("status", status);
                 // implement sending msg back to player

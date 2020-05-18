@@ -33,12 +33,13 @@ public class GameMasterBoard extends Board {
         if(playerDTO.playerPosition.getX()<0 || playerDTO.playerPosition.getX()>=this.boardWidth ||
                 playerDTO.playerPosition.getY()<0 || playerDTO.playerPosition.getY()>=this.boardHeight)
         {
+            playerDTO.playerPosition = old_pos;
             return null;
         }
 
-        if(this.getField(playerDTO.getPosition()).cell.playerGuids != null){
-            return null;
-        }
+//        if(this.getField(playerDTO.getPosition()).cell.playerGuids != null){
+//            return null;
+//        }
         else
         {
             if (playerDTO.playerTeamColor == TeamColor.BLUE)
@@ -49,7 +50,11 @@ public class GameMasterBoard extends Board {
                     this.cellsGrid[old_pos.getX()][old_pos.getY()].setPlayerGuids(null);
                     return playerDTO.playerPosition;
                 }
-                else return null;
+                else {
+                    playerDTO.playerPosition = old_pos;
+                    return null;
+                }
+
             }
             else
             {
@@ -61,7 +66,10 @@ public class GameMasterBoard extends Board {
                     }
                 }
 
-                else return null;
+                else {
+                    playerDTO.playerPosition = old_pos;
+                    return null;
+                }
             }
         }
 
