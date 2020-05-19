@@ -64,6 +64,12 @@ public class PlayerTest {
         assertEquals(player.board.boardHeight, 16);
         assertEquals(player.board.boardWidth, 10);
     }
+    
+    @Test
+    public void Discover() throws Exception
+    {
+    	
+    }
 
     @Test
     public void PickupPieceTest() throws Exception

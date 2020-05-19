@@ -1,10 +1,16 @@
 package com.pw.player.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.common.model.*;
 import com.pw.player.SimpleClient;
+
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+
 import javax.management.RuntimeErrorException;
 
 import java.io.IOException;
@@ -14,12 +20,14 @@ import java.util.UUID;
 import javax.net.ssl.SSLEngineResult.Status;
 
 import java.util.Scanner;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -395,18 +403,37 @@ public class Player {
 	        client.sendMessage(message.toJSONString());
 	        
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
-	        String stat = (String)response.get("status");
-	        if(stat.equals("OK"))
+	        String read = client.receiveMessage();
+	        while(read==null)
 	        {
-	        	List<Field> fields = new ArrayList<>();
+	        	read = client.receiveMessage();
+	        }
+	        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	        MAPPER.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+	        List<Field> fields = Arrays.asList(MAPPER.readValue(read, Field[].class));
+	        LOGGER.info("Message demapped");
+	        //String stat = MAPPER.readValue(read, String.class);
+	        JsonNode jsonNode = MAPPER.readTree(read);
+	        //JsonNode jsonNode = MAPPER.readValue(read, JsonNode.class);
+	        //JsonNode statnode = jsonNode.get("status");
+	        //String stat = statnode.asText();
+	        JsonNode fieldnode = jsonNode.get("fields");
+	        String field = MAPPER.convertValue(fieldnode, String.class);
+	        fields = Arrays.asList(MAPPER.readValue(field, Field[].class));
+	        //JsonNode field = fieldnode.get("position");
+	        //List<Field> fields = MAPPER.readValue(read, new TypeReference<List<Field>>() {});
+	        //JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        //String stat = (String)response.get("status");
+	        //if(stat.equals("OK"))
+	        {
+	        	//List<Field> fields = new ArrayList<>();
 	        	//ObjectMapper mapper = new ObjectMapper();
-	        	fields = (List<Field>)response.get("fields");
+	        	//fields = (List<Field>)response.get("fields");
 	            for(Field f : fields)
 	            {
-	            	board.cellsGrid[f.getPosition().x][f.getPosition().y].setCellState(f.cell.getCellState());
+	            	board.updateField(f);
 	            }
-	            //lastAction = ActionType.DISCOVER;
+	            lastAction = ActionType.DISCOVER;
 	        }
 	        LOGGER.info("Discovered");
 	    }
@@ -418,7 +445,7 @@ public class Player {
 	        JSONObject message = new JSONObject();
 	        message.put("action", "move");
 	        message.put("playerGuid",playerGuid.toString());
-	        message.put("direction", direction);
+	        message.put("direction", direction.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
 	        String msg = null;
@@ -455,7 +482,12 @@ public class Player {
 	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        JSONObject response = (JSONObject)parser.parse(msg);
 	        String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
@@ -479,7 +511,12 @@ public class Player {
 	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        JSONObject response = (JSONObject)parser.parse(msg);
 	        String stat = (String)response.get("status");
 	        String res = (String)response.get("test");
 	        if(stat.equals("OK"))
@@ -514,7 +551,12 @@ public class Player {
 	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        JSONObject response = (JSONObject)parser.parse(msg);
 	        String stat = (String)response.get("status");
 	        String res = (String)response.get("test");
 	        if(stat.equals("OK"))

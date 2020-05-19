@@ -345,7 +345,7 @@ public class GameMaster {
     }
 
     // return type not specified in specifiaction
-    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException, UnexpectedActionException {
+    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException, UnexpectedActionException, IOException {
         JSONParser jsonParser = new JSONParser();
         JSONObject msg = (JSONObject)jsonParser.parse(message);
         String action = (String)msg.get("action");
@@ -397,7 +397,7 @@ public class GameMaster {
                 return msg;
 
             // game action msgs
-            case "MOVE":
+            case "move":
                 String directionString = (String)msg.get("direction");
                 Position.Direction direction;
                 switch (directionString) {
@@ -469,8 +469,10 @@ public class GameMaster {
                 }
                 PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
                 if (res2 == PlacementResult.CORRECT) {
+                	msg.put("status", "OK");
                     msg.put("placementResult", "Correct");
                 } else if (res2 == PlacementResult.POINTLESS) {
+                	msg.put("status", "OK");
                     msg.put("placementResult", "Pointless");
                 }
                 // implement sending msg back
@@ -479,6 +481,7 @@ public class GameMaster {
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
                 ObjectMapper mapper = new ObjectMapper();
                 msg.put("fields", mapper.writeValueAsString(fieldList));
+                //msg.put("fields", fieldList);
                 // implement sending msg back
                 return msg;
 
