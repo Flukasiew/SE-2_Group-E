@@ -369,8 +369,9 @@ public class Player {
 
         if(team.color == TeamColor.BLUE)
         {
-            for(x = 0; x < board.boardWidth; x++)
-                for(y = 0; y < board.goalAreaHeight; y++)
+        	for(y = 0; y < board.goalAreaHeight; y++)
+        	{
+        		for(x = 0; x < board.boardWidth; x++)
                     //if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
                 	if(counter<=y*board.boardWidth+x)
                     {
@@ -378,12 +379,14 @@ public class Player {
                     	goalCell[1] = y;
                     	return goalCell;
                     }
+        	}
         }
         else if(team.color == TeamColor.RED)
         {
-        	for(x=0; x<board.boardWidth; x++)
+        	for(y=board.goalAreaHeight+board.taskAreaHeight; y<board.boardHeight; y++)
         	{
-        		for(y=board.goalAreaHeight+board.taskAreaHeight; y<board.boardHeight; y++)
+	        	for(x=0; x<board.boardWidth; x++)
+	        	{
         			//if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
         			if(counter<=(y-(board.goalAreaHeight+board.taskAreaHeight))+x)
                     {
@@ -391,6 +394,7 @@ public class Player {
                     	goalCell[1] = y;
                     	return goalCell;
                     }
+	        	}
         	}
         }
         return  goalCell;
@@ -541,6 +545,7 @@ public class Player {
 	        }
 	        else
 	        {
+	        	board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
 	        	LOGGER.info("Failed to pick up piece");
 	            return;
 	        }
