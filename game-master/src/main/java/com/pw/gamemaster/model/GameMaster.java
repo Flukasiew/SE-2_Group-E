@@ -50,6 +50,7 @@ public class GameMaster {
     private String logFilePath = "log_gm.txt";
     private Map<UUID, PlayerDTO> playersDTO;
     private Map<UUID, Boolean> readyStatus;
+    private Map<UUID, Boolean> playerPieces;
     private List<UUID> connectedPlayers;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -76,9 +77,16 @@ public class GameMaster {
         listen();
     }
 
+    private void initPlayerPieces() {
+        playerPieces = new HashMap<UUID, Boolean>();
+        for (UUID uuid:connectedPlayers) {
+            playerPieces.put(uuid, false);
+        }
+    }
+
     public void startGame() throws IOException {
         this.placePlayers();
-        PlayerDTO playerDTO = new PlayerDTO();
+        PlayerDTO playerDTO;
         for (UUID player:connectedPlayers) {
             JSONObject jsonObject = new JSONObject();
             JSONObject positionJsonObject = new JSONObject();
@@ -98,6 +106,7 @@ public class GameMaster {
             jsonObject.put("board", boardJsonObject);
             simpleClient.sendMessage(jsonObject.toJSONString());
         }
+        initPlayerPieces();
 
         LOGGER.info("Game started");
     }
@@ -440,30 +449,33 @@ public class GameMaster {
                 Cell.CellState res = board.takePiece(pos);
                 if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
                     status = "OK";
+                    playerPieces.replace(uuid, true);
                 } else {
                     status = "DENIED";
 
                 }
-                msg.put("status", status);
+                //msg.put("status", status);
                 // implement sending msg back to player
                 return msg;
             case "test":
-                Field xd = this.board.getField(playersDTO.get(uuid).playerPosition);
-                Cell.CellState state = xd.cell.cellState;
-                if (state != Cell.CellState.PIECE) {
+                //Field xd = this.board.getField(playersDTO.get(uuid).playerPosition);
+                //Cell.CellState state = xd.cell.cellState;
+                if (!playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("test", null);
                 } else {
                     boolean boolStatus = Math.random() > (1 - configuration.shamProbability);
+                    if(!boolStatus) {
+                        playerPieces.replace(uuid, false);
+                    }
                     msg.put("test", boolStatus);
                     msg.put("status", "OK");
                 }
-                // implement sending msg back
                 return msg;
             case "place":
                 Field xdd = this.board.getField(playersDTO.get(uuid).playerPosition);
                 Cell.CellState state2 = xdd.cell.cellState;
-                if (state2 == Cell.CellState.PIECE) {
+                if (state2 == Cell.CellState.PIECE || !playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("placementResult", null);
                     break;
@@ -472,11 +484,12 @@ public class GameMaster {
                 if (res2 == PlacementResult.CORRECT) {
                 	msg.put("status", "OK");
                     msg.put("placementResult", "Correct");
+                    playerPieces.replace(uuid, false);
                 } else if (res2 == PlacementResult.POINTLESS) {
                 	msg.put("status", "OK");
                     msg.put("placementResult", "Pointless");
+                    playerPieces.replace(uuid, false);
                 }
-                // implement sending msg back
                 return msg;
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
@@ -487,8 +500,6 @@ public class GameMaster {
                     msg.put("status", "OK");
                 }
                 msg.put("fields", mapper.writeValueAsString(fieldList));
-                //msg.put("fields", fieldList);
-                // implement sending msg back
                 return msg;
 
             default:
