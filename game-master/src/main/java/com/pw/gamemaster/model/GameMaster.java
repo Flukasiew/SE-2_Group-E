@@ -188,6 +188,7 @@ public class GameMaster {
                 }
             }
             GameMessageEndDTO gameMessageEndDTO;
+            ObjectMapper objectMapper = new ObjectMapper();
             if(blueWin) {
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
             } else if (redWin) {
@@ -195,7 +196,7 @@ public class GameMaster {
             } else {
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
             }
-            simpleClient.sendMessage(gameMessageEndDTO.toString());
+            simpleClient.sendMessage(objectMapper.writeValueAsString(gameMessageEndDTO));
         }
         catch (Exception e) {
             LOGGER.error("Exception occured when listening " + e.toString() +" from " + msg, e.toString());
@@ -480,6 +481,11 @@ public class GameMaster {
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
                 ObjectMapper mapper = new ObjectMapper();
+                if(fieldList.size()==0){
+                    msg.put("status", "DENIED");
+                } else {
+                    msg.put("status", "OK");
+                }
                 msg.put("fields", mapper.writeValueAsString(fieldList));
                 //msg.put("fields", fieldList);
                 // implement sending msg back
