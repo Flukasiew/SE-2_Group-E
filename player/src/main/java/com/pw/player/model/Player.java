@@ -48,6 +48,7 @@ public class Player {
 
     public boolean piece;
     public boolean tested;
+    private int counter=0;
 
     private InetAddress ipAddress;
     private int portNumber; // we can think about using InetSocketAddress from java.net
@@ -178,14 +179,22 @@ public class Player {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
+        //else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
+        else if(team.color==TeamColor.BLUE&&position.y<board.goalAreaHeight&&counter<position.y*board.boardWidth+position.x&&piece==true)
             try{
             	placePiece();
             } catch (Exception e) {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE)
+        else if(team.color==TeamColor.RED&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&counter<(position.y-(board.taskAreaHeight+board.goalAreaHeight))*board.boardWidth+position.x&&piece==true)
+            try{
+            	placePiece();
+            } catch (Exception e) {
+            	LOGGER.error(e.toString());
+            	e.printStackTrace();
+            }
+        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE&&piece==false)
             try {
             	takePiece();
             } catch (Exception e) {
@@ -285,12 +294,33 @@ public class Player {
     	LOGGER.info("Player chooses direction");
         int cellToMove[] = {-1, 1};
 
-        if(piece == true && tested == true)
+        if(piece == true && findClosestGoal()[0]!=-1)
+        {
             cellToMove = findClosestGoal();
-        else if(findPiece()[0] != -1)
+            LOGGER.info("Moving towards goal");
+        }
+        else if(piece==false&&findPiece()[0] != -1)
+        {
+        	LOGGER.info("Moving towards piece");
             cellToMove = findPiece();
+        }
         else
         {
+        	
+        	if(piece==true)
+        	{
+        		if(team.color == TeamColor.BLUE)
+        		{
+        			LOGGER.info("Moving to goal area");
+        			return Position.Direction.UP;
+        		}
+        		else if(team.color == TeamColor.RED)
+        		{
+        			LOGGER.info("Moving to goal area");
+        			return Position.Direction.DOWN;
+        		}
+        	}
+        	LOGGER.info("Moving elsewhere");
             cellToMove[0] = 0 + (int)(Math.random() * ((board.boardWidth - 0) + 1));
             cellToMove[1] = board.goalAreaHeight + (int)(Math.random() * (((board.goalAreaHeight + board.taskAreaHeight) - board.goalAreaHeight) + 1));
         }
@@ -299,10 +329,20 @@ public class Player {
             return Position.Direction.RIGHT;
         else if(cellToMove[0] > position.x)
             return Position.Direction.LEFT;
-        else if(cellToMove[1] > position.y)
-            return Position.Direction.DOWN;
+        else if(team.color == TeamColor.BLUE)
+        {
+	        if(cellToMove[1] > position.y)
+	            return Position.Direction.DOWN;
+	        else
+	            return Position.Direction.UP;
+        }
         else
-            return Position.Direction.UP;
+        {
+        	if(cellToMove[1] < position.y)
+	            return Position.Direction.UP;
+	        else
+	            return Position.Direction.DOWN;
+        }
     }
 
     private int[] findPiece()
@@ -310,9 +350,9 @@ public class Player {
         int[] pieceCell = {-1, -1};
         int x = -1, y = -1;
 
-        for(x = 0; x < board.boardWidth; ++x)
-            for(y = board.taskAreaHeight; y < board.goalAreaHeight + board.taskAreaHeight; ++y)
-                if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+        for(x = 0; x < board.boardWidth; x++)
+            for(y = board.goalAreaHeight; y < board.goalAreaHeight + board.taskAreaHeight; y++)
+                if(board.cellsGrid[x][y].cellState == Cell.CellState.PIECE)
                 {
                     pieceCell[0] = x;
                     pieceCell[1] = y;
@@ -328,28 +368,32 @@ public class Player {
         int x = -1, y = -1;
 
         if(team.color == TeamColor.BLUE)
-            for(x = 0; x < board.boardWidth; ++x)
-                for(y = board.taskAreaHeight + board.goalAreaHeight; y < board.taskAreaHeight + 2 * board.goalAreaHeight; ++y)
-                    if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
-                        break;
-                    else
-                        for(x = 0; x < board.boardWidth; ++x)
-                            for(y = 0; y < board.taskAreaHeight; ++y)
-                                if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
-                                    break;
-
-        goalCell[0] = x;
-        goalCell[1] = y;
-        return  goalCell;
-    }
-
-    private void singleDiscover(int x, int y)
-    {
-        if (board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN &&
-                x >= 0 && x < board.boardWidth && y >= 0  && y < board.boardHeight)
         {
-            //board.cellsGrid[x][y].setCellState("Game Master returns");
+            for(x = 0; x < board.boardWidth; x++)
+                for(y = 0; y < board.goalAreaHeight; y++)
+                    //if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+                	if(counter<=y*board.boardWidth+x)
+                    {
+                    	goalCell[0] = x;
+                    	goalCell[1] = y;
+                    	return goalCell;
+                    }
         }
+        else if(team.color == TeamColor.RED)
+        {
+        	for(x=0; x<board.boardWidth; x++)
+        	{
+        		for(y=board.goalAreaHeight+board.taskAreaHeight; y<board.boardHeight; y++)
+        			//if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+        			if(counter<=(y-(board.goalAreaHeight+board.taskAreaHeight))+x)
+                    {
+                    	goalCell[0] = x;
+                    	goalCell[1] = y;
+                    	return goalCell;
+                    }
+        	}
+        }
+        return  goalCell;
     }
 
     private boolean CanMove(Position.Direction dir)
@@ -377,14 +421,14 @@ public class Player {
         	LOGGER.info("Cannot move down");
             return false;
         }
-        if(team.color == TeamColor.RED&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
-        {
-        	LOGGER.info("Approached blue goal area, cannot move down");
-            return false;
-        }
-        if(team.color == TeamColor.BLUE&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        if(team.color == TeamColor.BLUE&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
         {
         	LOGGER.info("Approached red goal area, cannot move down");
+            return false;
+        }
+        if(team.color == TeamColor.RED&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        {
+        	LOGGER.info("Approached blue goal area, cannot move down");
             return false;
         }
         return true;
@@ -576,6 +620,7 @@ public class Player {
 	                tested = false;
 	                LOGGER.info("Piece wasted");
 	            }
+	            counter++;
 	        }
 	        else 
 	        {
