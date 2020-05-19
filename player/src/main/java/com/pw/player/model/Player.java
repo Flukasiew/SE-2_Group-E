@@ -178,7 +178,7 @@ public class Player {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL)
+        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
             try{
             	placePiece();
             } catch (Exception e) {
@@ -199,8 +199,8 @@ public class Player {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        else if(piece == true && tested == true ||
-                piece == false)
+        else if((piece == true && tested == true) ||
+                (piece == false))
             try {
             	discover();
             	move(chooseDirection());
@@ -518,16 +518,16 @@ public class Player {
 	        }
 	        JSONObject response = (JSONObject)parser.parse(msg);
 	        String stat = (String)response.get("status");
-	        String res = (String)response.get("test");
+	        boolean res = (boolean)response.get("test");
 	        if(stat.equals("OK"))
-	            if(res=="false")
+	            if(res==false)
 	            {
 	            	LOGGER.info("Piece is a sham");
 	                lastAction = ActionType.DESTROY;
 	                piece = false;
 	                tested = false;
 	            }
-	            else if(res=="true")
+	            else if(res==true)
 	            {
 	            	LOGGER.info("Piece is good");
 	                lastAction = ActionType.TEST;
@@ -561,10 +561,10 @@ public class Player {
 	        String res = (String)response.get("test");
 	        if(stat.equals("OK"))
 	        {
-	            if(res=="correct")
+	            if(res=="Correct")
 	            {
 	                lastAction = ActionType.PLACE;
-	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.GOAL);
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
 	                piece = false;
 	                tested = false;
 	                LOGGER.info("Goal completed");
@@ -572,7 +572,6 @@ public class Player {
 	            else
 	            {
 	                lastAction = ActionType.PLACE;
-	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
 	                piece = false;
 	                tested = false;
 	                LOGGER.info("Piece wasted");

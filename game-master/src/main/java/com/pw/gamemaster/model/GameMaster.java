@@ -452,9 +452,8 @@ public class GameMaster {
                     playerPieces.replace(uuid, true);
                 } else {
                     status = "DENIED";
-
                 }
-                //msg.put("status", status);
+                msg.put("status", status);
                 // implement sending msg back to player
                 return msg;
             case "test":
@@ -478,17 +477,18 @@ public class GameMaster {
                 if (state2 == Cell.CellState.PIECE || !playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("placementResult", null);
-                    break;
                 }
-                PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
-                if (res2 == PlacementResult.CORRECT) {
-                	msg.put("status", "OK");
-                    msg.put("placementResult", "Correct");
-                    playerPieces.replace(uuid, false);
-                } else if (res2 == PlacementResult.POINTLESS) {
-                	msg.put("status", "OK");
-                    msg.put("placementResult", "Pointless");
-                    playerPieces.replace(uuid, false);
+                else {
+	                PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
+	                if (res2 == PlacementResult.CORRECT) {
+	                	msg.put("status", "OK");
+	                    msg.put("placementResult", "Correct");
+	                    playerPieces.replace(uuid, false);
+	                } else if (res2 == PlacementResult.POINTLESS) {
+	                	msg.put("status", "OK");
+	                    msg.put("placementResult", "Pointless");
+	                    playerPieces.replace(uuid, false);
+	                }
                 }
                 return msg;
             case "discover":
@@ -505,7 +505,7 @@ public class GameMaster {
             default:
                 throw new UnexpectedActionException("Unexpected value: " + action);
         }
-        throw new UnexpectedActionException("Unexpected behaviour");
+        //throw new UnexpectedActionException("Unexpected behaviour");
     }
 
 
