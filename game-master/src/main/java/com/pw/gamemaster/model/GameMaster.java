@@ -450,6 +450,7 @@ public class GameMaster {
                 if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
                     status = "OK";
                     playerPieces.replace(uuid, true);
+                    this.board.generatePiece();
                 } else {
                     status = "DENIED";
                 }

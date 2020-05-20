@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.common.model.*;
+import com.pw.common.model.Cell.CellState;
 import com.pw.player.SimpleClient;
 
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -36,6 +37,9 @@ public class Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
 	private static final ObjectMapper MAPPER = new ObjectMapper();
     public Team team;
+    //private List<Position> positions = new ArrayList<Position>();
+    private List<Integer> posx = new ArrayList<Integer>();
+    private List<Integer> posy = new ArrayList<Integer>();
 
     public String playerName;
     public UUID playerGuid;
@@ -56,6 +60,7 @@ public class Player {
     private String host = "0.0.0.0";
     private SimpleClient client;
     private boolean on = false;
+    boolean lastdisc = false;
 
     public Player(TeamColor color, TeamRole role, Position position, SimpleClient client)
     {
@@ -137,6 +142,13 @@ public class Player {
                     	position = new Position(((Long)newposition.get("x")).intValue(), ((Long)newposition.get("y")).intValue());
                     	JSONObject newboard = (JSONObject)object.get("board");
                     	board = new Board(((Long)newboard.get("boardWidth")).intValue(), ((Long)newboard.get("goalAreaHeight")).intValue(), ((Long)newboard.get("taskAreaHeight")).intValue());
+                    	for(int i=0; i<board.boardHeight; i++)
+                    	{
+                    		for(int j=0; j<board.boardWidth; j++)
+                    		{
+                    			board.cellsGrid[j][i].setCellState(CellState.UNKNOWN);
+                    		}
+                    	}
                     	//board = (Board)object.get("board");
                     	//board = new Board(object.get("board").get("boardWidth"), object.getJSONObject("board").get("goalHeight"));
                     	on = true;
@@ -175,21 +187,24 @@ public class Player {
         if(piece == true && tested == false)
         	try {
         		testPiece();
+        		lastdisc = !lastdisc;
         	} catch (Exception e) {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
         //else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
-        else if(team.color==TeamColor.BLUE&&position.y<board.goalAreaHeight&&counter<position.y*board.boardWidth+position.x&&piece==true)
+        else if(team.color==TeamColor.BLUE&&position.y<board.goalAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
             try{
             	placePiece();
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(team.color==TeamColor.RED&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&counter<(position.y-(board.taskAreaHeight+board.goalAreaHeight))*board.boardWidth+position.x&&piece==true)
+        else if(team.color==TeamColor.RED&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
             try{
             	placePiece();
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
@@ -197,13 +212,25 @@ public class Player {
         else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE&&piece==false)
             try {
             	takePiece();
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(howManyUnknown())
+        else if(team.color==TeamColor.BLUE&&position.y>=board.goalAreaHeight&&lastAction != ActionType.DISCOVER)
         	try {
         		discover();
+        		counter++;
+        		lastdisc = !lastdisc;
+        	} catch (Exception e) {
+        		LOGGER.error(e.toString());
+        		e.printStackTrace();
+        	}
+        else if(team.color==TeamColor.RED&&position.y<board.goalAreaHeight+board.taskAreaHeight&&lastAction != ActionType.DISCOVER)
+        	try {
+        		discover();
+        		counter++;
+        		lastdisc = !lastdisc;
         	} catch (Exception e) {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
@@ -211,8 +238,9 @@ public class Player {
         else if((piece == true && tested == true) ||
                 (piece == false))
             try {
-            	discover();
+            	//discover();
             	move(chooseDirection());
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
 	            e.printStackTrace();
@@ -220,6 +248,8 @@ public class Player {
         else
         	try {
         		discover();
+        		counter++;
+        		lastdisc = !lastdisc;
         	} catch (Exception e) {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
@@ -306,23 +336,20 @@ public class Player {
         }
         else
         {
-        	
-        	if(piece==true)
+        	LOGGER.info("Checking distance");
+        	cellToMove = minDistance();
+        	if(cellToMove[0]==-1)
         	{
-        		if(team.color == TeamColor.BLUE)
+        		if(team.color==TeamColor.BLUE)
         		{
-        			LOGGER.info("Moving to goal area");
-        			return Position.Direction.UP;
-        		}
-        		else if(team.color == TeamColor.RED)
-        		{
-        			LOGGER.info("Moving to goal area");
         			return Position.Direction.DOWN;
         		}
+        		else
+        			return Position.Direction.UP;
         	}
-        	LOGGER.info("Moving elsewhere");
-            cellToMove[0] = 0 + (int)(Math.random() * ((board.boardWidth - 0) + 1));
-            cellToMove[1] = board.goalAreaHeight + (int)(Math.random() * (((board.goalAreaHeight + board.taskAreaHeight) - board.goalAreaHeight) + 1));
+        	
+            //cellToMove[0] = 0 + (int)(Math.random() * ((board.boardWidth - 0) + 1));
+            //cellToMove[1] = board.goalAreaHeight + (int)(Math.random() * (((board.goalAreaHeight + board.taskAreaHeight) - board.goalAreaHeight) + 1));
         }
 
         if(cellToMove[0] > position.x)
@@ -343,6 +370,79 @@ public class Player {
 	        else
 	            return Position.Direction.DOWN;
         }
+    }
+    
+    private int[] minDistance()
+    {
+    	int[] pieceCell = {-1, -1};
+        int x = -1, y = -1;
+        int min = 999;
+        if(board.cellsGrid[position.x][position.y].distance<min&&board.cellsGrid[position.x][position.y].distance>=0)
+        {
+        	min = board.cellsGrid[position.x][position.y].distance;
+        	x = position.x;
+        	y = position.y;
+        }
+        if(position.x>0)
+	        if(board.cellsGrid[position.x-1][position.y].distance<min&&board.cellsGrid[position.x-1][position.y].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x-1][position.y].distance;
+	        	x = position.x-1;
+	        	y = position.y;
+	        }
+        if(position.x>0&&position.y>0)
+	        if(board.cellsGrid[position.x-1][position.y-1].distance<min&&board.cellsGrid[position.x-1][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x-1][position.y-1].distance;
+	        	x = position.x-1;
+	        	y = position.y-1;
+	        }
+        if(position.x>0&&position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x-1][position.y+1].distance<min&&board.cellsGrid[position.x-1][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x-1][position.y+1].distance;
+	        	x = position.x-1;
+	        	y = position.y+1;
+	        }
+        if(position.x<board.boardWidth-1&&position.y>0)
+        	if(board.cellsGrid[position.x+1][position.y-1].distance<min&&board.cellsGrid[position.x+1][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y-1].distance;
+	        	x = position.x+1;
+	        	y = position.y-1;
+	        }
+        if(position.x<board.boardWidth-1)
+        	if(board.cellsGrid[position.x+1][position.y].distance<min&&board.cellsGrid[position.x+1][position.y].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y].distance;
+	        	x = position.x+1;
+	        	y = position.y;
+	        }
+        if(position.x<board.boardWidth-1&&position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x+1][position.y+1].distance<min&&board.cellsGrid[position.x+1][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y+1].distance;
+	        	x = position.x+1;
+	        	y = position.y+1;
+	        }
+        if(position.y>0)
+        	if(board.cellsGrid[position.x][position.y-1].distance<min&&board.cellsGrid[position.x][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x][position.y-1].distance;
+	        	x = position.x;
+	        	y = position.y-1;
+	        }
+        if(position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x][position.y+1].distance<min&&board.cellsGrid[position.x][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x][position.y+1].distance;
+	        	x = position.x;
+	        	y = position.y+1;
+	        }
+        LOGGER.info("Minimal distance is " + min);
+        pieceCell[0]=x;
+        pieceCell[1]=y;
+        return pieceCell;
     }
 
     private int[] findPiece()
@@ -365,7 +465,7 @@ public class Player {
     private int[] findClosestGoal()
     {
         int[] goalCell = {-1, -1};
-        int x = -1, y = -1;
+        int x = 0, y = 0;
 
         if(team.color == TeamColor.BLUE)
         {
@@ -373,7 +473,8 @@ public class Player {
         	{
         		for(x = 0; x < board.boardWidth; x++)
                     //if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
-                	if(counter<=y*board.boardWidth+x)
+                	//if(counter<=y*board.boardWidth+x)
+        			if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
                     {
                     	goalCell[0] = x;
                     	goalCell[1] = y;
@@ -388,7 +489,8 @@ public class Player {
 	        	for(x=0; x<board.boardWidth; x++)
 	        	{
         			//if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
-        			if(counter<=(y-(board.goalAreaHeight+board.taskAreaHeight))+x)
+        			//if(counter<=(y-(board.goalAreaHeight+board.taskAreaHeight))+x)
+	        		if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
                     {
                     	goalCell[0] = x;
                     	goalCell[1] = y;
@@ -445,7 +547,7 @@ public class Player {
 	        int y = position.y;
 	        
 	        JSONObject message = new JSONObject();
-	        JSONObject position = new JSONObject();
+	        //JSONObject position = new JSONObject();
 	        message.put("action", "discover");
 	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
@@ -459,12 +561,11 @@ public class Player {
 	        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	        MAPPER.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 	        List<Field> fields = Arrays.asList(MAPPER.readValue(read, Field[].class));
-	        LOGGER.info("Message demapped");
 	        //String stat = MAPPER.readValue(read, String.class);
 	        JsonNode jsonNode = MAPPER.readTree(read);
 	        //JsonNode jsonNode = MAPPER.readValue(read, JsonNode.class);
-	        //JsonNode statnode = jsonNode.get("status");
-	        //String stat = statnode.asText();
+	        JsonNode statnode = jsonNode.get("status");
+	        String stat = statnode.asText();
 	        JsonNode fieldnode = jsonNode.get("fields");
 	        String field = MAPPER.convertValue(fieldnode, String.class);
 	        fields = Arrays.asList(MAPPER.readValue(field, Field[].class));
@@ -472,18 +573,25 @@ public class Player {
 	        //List<Field> fields = MAPPER.readValue(read, new TypeReference<List<Field>>() {});
 	        //JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
 	        //String stat = (String)response.get("status");
-	        //if(stat.equals("OK"))
+	        if(stat.equals("OK"))
 	        {
+	        	posx.add(position.x);
+	        	posy.add(position.y);
 	        	//List<Field> fields = new ArrayList<>();
 	        	//ObjectMapper mapper = new ObjectMapper();
 	        	//fields = (List<Field>)response.get("fields");
 	            for(Field f : fields)
 	            {
-	            	board.updateField(f);
+	            	if(f.position.y>=board.goalAreaHeight&&f.position.y<board.goalAreaHeight+board.taskAreaHeight)
+	            		board.updateField(f);
 	            }
-	            lastAction = ActionType.DISCOVER;
+	            LOGGER.info("Discovered");
 	        }
-	        LOGGER.info("Discovered");
+	        else
+	        {
+	        	LOGGER.info("Discovering failed");
+	        }
+	        lastAction = ActionType.DISCOVER;
 	    }
     }
 
@@ -508,15 +616,10 @@ public class Player {
 	        String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
-	            Position oldPosition;
-	            oldPosition = position;
-	            position.changePosition(direction);
-	
-	            if (CanMove(direction))
-	                lastAction = ActionType.MOVE;
-	            else
-	                position = oldPosition;
+	        	if(CanMove(direction))
+	        		position.changePosition(direction);
 	        }
+	        lastAction = ActionType.MOVE;
 	        LOGGER.info("Moved");
 	    }
     }
@@ -607,13 +710,14 @@ public class Player {
 	        }
 	        JSONObject response = (JSONObject)parser.parse(msg);
 	        String stat = (String)response.get("status");
-	        String res = (String)response.get("test");
+	        String res = (String)response.get("placementResult");
+	        LOGGER.info("Placing at "+position.x+" "+position.y);
 	        if(stat.equals("OK"))
 	        {
 	            if(res=="Correct")
 	            {
 	                lastAction = ActionType.PLACE;
-	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.GOAL);
 	                piece = false;
 	                tested = false;
 	                LOGGER.info("Goal completed");
@@ -621,11 +725,11 @@ public class Player {
 	            else
 	            {
 	                lastAction = ActionType.PLACE;
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
 	                piece = false;
 	                tested = false;
 	                LOGGER.info("Piece wasted");
 	            }
-	            counter++;
 	        }
 	        else 
 	        {
