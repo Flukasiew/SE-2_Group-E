@@ -42,7 +42,7 @@ public class IntegrationTest {
 			executor.submit(player);
 		}
 
-		executor.awaitTermination(5, TimeUnit.MINUTES);
+		executor.awaitTermination(30, TimeUnit.MINUTES);
 	}
 
 	private static int totalThreadCount(int playerCount) {

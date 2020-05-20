@@ -40,6 +40,7 @@ public class Player {
     //private List<Position> positions = new ArrayList<Position>();
     private List<Integer> posx = new ArrayList<Integer>();
     private List<Integer> posy = new ArrayList<Integer>();
+    private List<Integer> dist = new ArrayList<Integer>();
 
     public String playerName;
     public UUID playerGuid;
@@ -53,6 +54,7 @@ public class Player {
     public boolean piece;
     public boolean tested;
     private int counter=0;
+    
 
     private InetAddress ipAddress;
     private int portNumber; // we can think about using InetSocketAddress from java.net
@@ -322,18 +324,19 @@ public class Player {
     private Position.Direction chooseDirection()
     {
     	LOGGER.info("Player chooses direction");
-        int cellToMove[] = {-1, 1};
+        int cellToMove[] = {-1, -1};
 
         if(piece == true && findClosestGoal()[0]!=-1)
         {
             cellToMove = findClosestGoal();
             LOGGER.info("Moving towards goal");
         }
-        else if(piece==false&&findPiece()[0] != -1)
-        {
-        	LOGGER.info("Moving towards piece");
-            cellToMove = findPiece();
-        }
+//        else if(piece==false&&findPiece()[0] != -1)
+//        {
+//        	dist.add(-1);
+//        	LOGGER.info("Moving towards piece");
+//            cellToMove = findPiece();
+//        }
         else
         {
         	LOGGER.info("Checking distance");
@@ -354,12 +357,13 @@ public class Player {
 
         if(cellToMove[0] > position.x)
             return Position.Direction.RIGHT;
-        else if(cellToMove[0] > position.x)
+        else if(cellToMove[0] < position.x)
             return Position.Direction.LEFT;
         else if(team.color == TeamColor.BLUE)
         {
 	        if(cellToMove[1] > position.y)
 	            return Position.Direction.DOWN;
+	        //else if(cellToMove[1]>position.y)
 	        else
 	            return Position.Direction.UP;
         }
@@ -367,7 +371,8 @@ public class Player {
         {
         	if(cellToMove[1] < position.y)
 	            return Position.Direction.UP;
-	        else
+	        //else if(cellToMove[1]>position.y)
+        	else
 	            return Position.Direction.DOWN;
         }
     }
@@ -377,18 +382,33 @@ public class Player {
     	int[] pieceCell = {-1, -1};
         int x = -1, y = -1;
         int min = 999;
-        if(board.cellsGrid[position.x][position.y].distance<min&&board.cellsGrid[position.x][position.y].distance>=0)
-        {
-        	min = board.cellsGrid[position.x][position.y].distance;
-        	x = position.x;
-        	y = position.y;
-        }
         if(position.x>0)
 	        if(board.cellsGrid[position.x-1][position.y].distance<min&&board.cellsGrid[position.x-1][position.y].distance>=0)
 	        {
 	        	min = board.cellsGrid[position.x-1][position.y].distance;
 	        	x = position.x-1;
 	        	y = position.y;
+	        }
+        if(position.x<board.boardWidth-1)
+        	if(board.cellsGrid[position.x+1][position.y].distance<min&&board.cellsGrid[position.x+1][position.y].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y].distance;
+	        	x = position.x+1;
+	        	y = position.y;
+	        }
+        if(position.y>0)
+        	if(board.cellsGrid[position.x][position.y-1].distance<min&&board.cellsGrid[position.x][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x][position.y-1].distance;
+	        	x = position.x;
+	        	y = position.y-1;
+	        }
+        if(position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x][position.y+1].distance<min&&board.cellsGrid[position.x][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x][position.y+1].distance;
+	        	x = position.x;
+	        	y = position.y+1;
 	        }
         if(position.x>0&&position.y>0)
 	        if(board.cellsGrid[position.x-1][position.y-1].distance<min&&board.cellsGrid[position.x-1][position.y-1].distance>=0)
@@ -411,13 +431,7 @@ public class Player {
 	        	x = position.x+1;
 	        	y = position.y-1;
 	        }
-        if(position.x<board.boardWidth-1)
-        	if(board.cellsGrid[position.x+1][position.y].distance<min&&board.cellsGrid[position.x+1][position.y].distance>=0)
-	        {
-	        	min = board.cellsGrid[position.x+1][position.y].distance;
-	        	x = position.x+1;
-	        	y = position.y;
-	        }
+        
         if(position.x<board.boardWidth-1&&position.y<board.boardHeight-1)
         	if(board.cellsGrid[position.x+1][position.y+1].distance<min&&board.cellsGrid[position.x+1][position.y+1].distance>=0)
 	        {
@@ -425,21 +439,9 @@ public class Player {
 	        	x = position.x+1;
 	        	y = position.y+1;
 	        }
-        if(position.y>0)
-        	if(board.cellsGrid[position.x][position.y-1].distance<min&&board.cellsGrid[position.x][position.y-1].distance>=0)
-	        {
-	        	min = board.cellsGrid[position.x][position.y-1].distance;
-	        	x = position.x;
-	        	y = position.y-1;
-	        }
-        if(position.y<board.boardHeight-1)
-        	if(board.cellsGrid[position.x][position.y+1].distance<min&&board.cellsGrid[position.x][position.y+1].distance>=0)
-	        {
-	        	min = board.cellsGrid[position.x][position.y+1].distance;
-	        	x = position.x;
-	        	y = position.y+1;
-	        }
+        
         LOGGER.info("Minimal distance is " + min);
+        dist.add(min);
         pieceCell[0]=x;
         pieceCell[1]=y;
         return pieceCell;
@@ -627,6 +629,7 @@ public class Player {
     private void takePiece() throws IOException, ParseException {
 	    {
 	    	LOGGER.info("Picking up piece");
+	    	dist.add(0);
 	        lastAction = ActionType.PICKUP;
 	        JSONObject message = new JSONObject();
 	        message.put("action", "pickup");
