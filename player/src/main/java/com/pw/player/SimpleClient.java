@@ -22,7 +22,13 @@ public class SimpleClient {
     }
 
     public String receiveMessage() throws IOException {
-        return in.readLine();
+    	String temp;
+    	if(in.ready())
+    	{
+    		temp = in.readLine();
+    		return temp;
+    	}
+    	else return null;
     }
 
     public void stopConnection() throws IOException {

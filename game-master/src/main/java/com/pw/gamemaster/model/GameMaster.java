@@ -2,6 +2,8 @@ package com.pw.gamemaster.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.pw.common.dto.GameMessageEndDTO;
 import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.*;
@@ -48,6 +50,7 @@ public class GameMaster {
     private String logFilePath = "log_gm.txt";
     private Map<UUID, PlayerDTO> playersDTO;
     private Map<UUID, Boolean> readyStatus;
+    private Map<UUID, Boolean> playerPieces;
     private List<UUID> connectedPlayers;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -74,9 +77,16 @@ public class GameMaster {
         listen();
     }
 
+    private void initPlayerPieces() {
+        playerPieces = new HashMap<UUID, Boolean>();
+        for (UUID uuid:connectedPlayers) {
+            playerPieces.put(uuid, false);
+        }
+    }
+
     public void startGame() throws IOException {
         this.placePlayers();
-        PlayerDTO playerDTO = new PlayerDTO();
+        PlayerDTO playerDTO;
         for (UUID player:connectedPlayers) {
             JSONObject jsonObject = new JSONObject();
             JSONObject positionJsonObject = new JSONObject();
@@ -96,6 +106,7 @@ public class GameMaster {
             jsonObject.put("board", boardJsonObject);
             simpleClient.sendMessage(jsonObject.toJSONString());
         }
+        initPlayerPieces();
 
         LOGGER.info("Game started");
     }
@@ -139,6 +150,8 @@ public class GameMaster {
 
     private void listen() throws IOException, ParseException, UnexpectedActionException {
         long startTime = System.currentTimeMillis();
+        String msg = "empty";
+        Boolean redWin = false, blueWin = false;
         LOGGER.info("Game master has started listening");
         try {
             sleep(1000);
@@ -146,7 +159,7 @@ public class GameMaster {
             while(board == null && System.currentTimeMillis()-startTime<10000)
             {
                 //LOGGER.info("Pre recive1");
-                String msg = simpleClient.receiveMessage();
+                msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive " + msg);
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -159,7 +172,7 @@ public class GameMaster {
             while(!checkReadyGame() && System.currentTimeMillis()-startTime<10000)
             {
                 //LOGGER.info("Pre recive ready");
-                String msg = simpleClient.receiveMessage();
+                msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive ready");
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -171,9 +184,9 @@ public class GameMaster {
             }
             startGame();
             LOGGER.info("Pre while2");
-            while (!board.checkWinCondition(TeamColor.RED) && !board.checkWinCondition(TeamColor.BLUE)  && System.currentTimeMillis()-startTime<10000){
+            while (!(redWin = board.checkWinCondition(TeamColor.RED)) && !(blueWin=board.checkWinCondition(TeamColor.BLUE))  && System.currentTimeMillis()-startTime<10000){
                 //LOGGER.info("Pre recive");
-                String msg = simpleClient.receiveMessage();
+                msg = simpleClient.receiveMessage();
                 //LOGGER.info("post recive");
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -183,9 +196,19 @@ public class GameMaster {
                     startTime = System.currentTimeMillis();
                 }
             }
+            GameMessageEndDTO gameMessageEndDTO;
+            ObjectMapper objectMapper = new ObjectMapper();
+            if(blueWin) {
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
+            } else if (redWin) {
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.RED);
+            } else {
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
+            }
+            simpleClient.sendMessage(objectMapper.writeValueAsString(gameMessageEndDTO));
         }
         catch (Exception e) {
-            LOGGER.error("Exception occured when listening " + e.toString(), e.toString());
+            LOGGER.error("Exception occured when listening " + e.toString() +" from " + msg, e.toString());
         }
         LOGGER.info("Game master has finished listening");
     }
@@ -332,7 +355,7 @@ public class GameMaster {
     }
 
     // return type not specified in specifiaction
-    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException, UnexpectedActionException {
+    public JSONObject messageHandler(String message) throws ParseException, JsonProcessingException, UnexpectedActionException, IOException {
         JSONParser jsonParser = new JSONParser();
         JSONObject msg = (JSONObject)jsonParser.parse(message);
         String action = (String)msg.get("action");
@@ -388,16 +411,16 @@ public class GameMaster {
                 String directionString = (String)msg.get("direction");
                 Position.Direction direction;
                 switch (directionString) {
-                    case "Up":
+                    case "UP":
                         direction = Position.Direction.UP;
                         break;
-                    case "Down":
+                    case "DOWN":
                         direction = Position.Direction.DOWN;
                         break;
-                    case "Left":
+                    case "LEFT":
                         direction = Position.Direction.LEFT;
                         break;
-                    case "Right":
+                    case "RIGHT":
                         direction = Position.Direction.RIGHT;
                         break;
                     default:
@@ -406,9 +429,12 @@ public class GameMaster {
                 PlayerDTO playerDTO = playersDTO.get(uuid);
                 Position newPosition = board.playerMove(playerDTO, direction);
                 JSONObject positionJSON = new JSONObject();
-                if (newPosition.x == -1 && newPosition.y == -1) {
+                if (newPosition == null) {
                     status = "DENIED";
                     msg.put("position", null);
+                    LOGGER.info("X:" + playerDTO.playerPosition.getX() +" Y: " + playerDTO.playerPosition.getY()+" "
+                            +"Width:" + board.boardWidth + "Height" +board.boardHeight + "Color" + playerDTO.playerTeamColor
+                    +"H-GAH: " +(board.boardHeight - board.goalAreaHeight) + "direction: "+directionString);
                 } else {
                     status = "OK";
                     positionJSON.put("x", newPosition.x);
@@ -423,6 +449,8 @@ public class GameMaster {
                 Cell.CellState res = board.takePiece(pos);
                 if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
                     status = "OK";
+                    playerPieces.replace(uuid, true);
+                    this.board.generatePiece();
                 } else {
                     status = "DENIED";
                 }
@@ -430,45 +458,55 @@ public class GameMaster {
                 // implement sending msg back to player
                 return msg;
             case "test":
-                Field xd = this.board.getField(playersDTO.get(uuid).playerPosition);
-                Cell.CellState state = xd.cell.cellState;
-                if (state != Cell.CellState.PIECE) {
+                //Field xd = this.board.getField(playersDTO.get(uuid).playerPosition);
+                //Cell.CellState state = xd.cell.cellState;
+                if (!playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("test", null);
                 } else {
                     boolean boolStatus = Math.random() > (1 - configuration.shamProbability);
+                    if(!boolStatus) {
+                        playerPieces.replace(uuid, false);
+                    }
                     msg.put("test", boolStatus);
                     msg.put("status", "OK");
                 }
-                // implement sending msg back
                 return msg;
             case "place":
                 Field xdd = this.board.getField(playersDTO.get(uuid).playerPosition);
                 Cell.CellState state2 = xdd.cell.cellState;
-                if (state2 == Cell.CellState.PIECE) {
+                if (state2 == Cell.CellState.PIECE || !playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("placementResult", null);
-                    break;
                 }
-                PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
-                if (res2 == PlacementResult.CORRECT) {
-                    msg.put("placementResult", "Correct");
-                } else if (res2 == PlacementResult.POINTLESS) {
-                    msg.put("placementResult", "Pointless");
+                else {
+	                PlacementResult res2 = board.placePiece(playersDTO.get(uuid));
+	                if (res2 == PlacementResult.CORRECT) {
+	                	msg.put("status", "OK");
+	                    msg.put("placementResult", "Correct");
+	                    playerPieces.replace(uuid, false);
+	                } else if (res2 == PlacementResult.POINTLESS) {
+	                	msg.put("status", "OK");
+	                    msg.put("placementResult", "Pointless");
+	                    playerPieces.replace(uuid, false);
+	                }
                 }
-                // implement sending msg back
                 return msg;
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
                 ObjectMapper mapper = new ObjectMapper();
+                if(fieldList.size()==0){
+                    msg.put("status", "DENIED");
+                } else {
+                    msg.put("status", "OK");
+                }
                 msg.put("fields", mapper.writeValueAsString(fieldList));
-                // implement sending msg back
                 return msg;
 
             default:
                 throw new UnexpectedActionException("Unexpected value: " + action);
         }
-        throw new UnexpectedActionException("Unexpected behaviour");
+        //throw new UnexpectedActionException("Unexpected behaviour");
     }
 
 

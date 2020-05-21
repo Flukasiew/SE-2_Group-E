@@ -34,7 +34,7 @@ public class IntegrationTest {
 
 	@SneakyThrows
 	@Test
-	public void shouldCompleteGame() {
+	public void shouldCompleteGame() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
 		executor.submit(server);
 		executor.submit(gameMaster);
@@ -42,7 +42,7 @@ public class IntegrationTest {
 			executor.submit(player);
 		}
 
-		executor.awaitTermination(5, TimeUnit.MINUTES);
+		executor.awaitTermination(30, TimeUnit.MINUTES);
 	}
 
 	private static int totalThreadCount(int playerCount) {

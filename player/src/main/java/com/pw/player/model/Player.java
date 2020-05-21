@@ -1,10 +1,17 @@
 package com.pw.player.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.PlayerConnectMessageDTO;
 import com.pw.common.model.*;
+import com.pw.common.model.Cell.CellState;
 import com.pw.player.SimpleClient;
+
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+
 import javax.management.RuntimeErrorException;
 
 import java.io.IOException;
@@ -14,12 +21,14 @@ import java.util.UUID;
 import javax.net.ssl.SSLEngineResult.Status;
 
 import java.util.Scanner;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +37,10 @@ public class Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
 	private static final ObjectMapper MAPPER = new ObjectMapper();
     public Team team;
+    //private List<Position> positions = new ArrayList<Position>();
+    private List<Integer> posx = new ArrayList<Integer>();
+    private List<Integer> posy = new ArrayList<Integer>();
+    private List<Integer> dist = new ArrayList<Integer>();
 
     public String playerName;
     public UUID playerGuid;
@@ -40,6 +53,9 @@ public class Player {
 
     public boolean piece;
     public boolean tested;
+    private int counter=0;
+    String lastmsg="";
+    
 
     private InetAddress ipAddress;
     private int portNumber; // we can think about using InetSocketAddress from java.net
@@ -47,6 +63,7 @@ public class Player {
     private String host = "0.0.0.0";
     private SimpleClient client;
     private boolean on = false;
+    boolean lastdisc = false;
 
     public Player(TeamColor color, TeamRole role, Position position, SimpleClient client)
     {
@@ -68,7 +85,7 @@ public class Player {
         playerState = PlayerState.ACTIVE;
 
         startComm();
-        listen();
+        //listen();
     }
     
     public Player()
@@ -86,7 +103,7 @@ public class Player {
         playerState = PlayerState.ACTIVE;
 
         startComm();
-    	listen();
+    	//listen();
     }
 
     public void listen()
@@ -94,8 +111,8 @@ public class Player {
     	try {
             while (true) {
                 String msg = client.receiveMessage();
-                LOGGER.info(msg);
-                if(!msg.isEmpty())
+                //LOGGER.info(msg);
+                if(msg!=null && !msg.isEmpty())
                 {
                 	JSONParser parser = new JSONParser();
                     JSONObject object = (JSONObject)parser.parse(msg);
@@ -117,17 +134,32 @@ public class Player {
                     	LOGGER.info("Sending ready status message");
                     	client.sendMessage(object.toJSONString());
                     }
-                    else if(object.get("action")=="start")
+                    else if(object.get("action").equals("start")&&on==false)
                     {
                     	LOGGER.info("Received start message");
                     	team = new Team();
-                    	team.setColor((TeamColor)object.get("team"));
-                    	team.setRole((TeamRole)object.get("teamRole"));
-                    	team.size = (int)object.get("teamSize");
-                    	position = (Position)object.get("position");
-                    	board = (Board)object.get("board");
+                    	team.setColor((String)object.get("team"));
+                    	team.setRole((String)object.get("teamRole"));
+                    	team.size = ((Long)object.get("teamSize")).intValue();
+                    	JSONObject newposition = (JSONObject)object.get("position");
+                    	position = new Position(((Long)newposition.get("x")).intValue(), ((Long)newposition.get("y")).intValue());
+                    	JSONObject newboard = (JSONObject)object.get("board");
+                    	board = new Board(((Long)newboard.get("boardWidth")).intValue(), ((Long)newboard.get("goalAreaHeight")).intValue(), ((Long)newboard.get("taskAreaHeight")).intValue());
+                    	for(int i=0; i<board.boardHeight; i++)
+                    	{
+                    		for(int j=0; j<board.boardWidth; j++)
+                    		{
+                    			board.cellsGrid[j][i].setCellState(CellState.UNKNOWN);
+                    		}
+                    	}
+                    	//board = (Board)object.get("board");
+                    	//board = new Board(object.get("board").get("boardWidth"), object.getJSONObject("board").get("goalHeight"));
                     	on = true;
                     }
+                    else if(object.get("action").equals("start")&&on==true)
+                    	break;
+                    else if(on==false&&lastmsg.equals("end"))
+                    	break;
                 }
                 else if(on)
                 {
@@ -137,6 +169,7 @@ public class Player {
         }
         catch (Exception e) {
             LOGGER.error("Exception occured when listening", e.toString());
+            LOGGER.info(e.toString());
         }
     }
 
@@ -159,35 +192,60 @@ public class Player {
         if(piece == true && tested == false)
         	try {
         		testPiece();
+        		lastdisc = !lastdisc;
         	} catch (Exception e) {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL)
+        //else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
+        else if(team.color==TeamColor.BLUE&&position.y<board.goalAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
             try{
             	placePiece();
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE)
+        else if(team.color==TeamColor.RED&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
+            try{
+            	placePiece();
+            	lastdisc = !lastdisc;
+            } catch (Exception e) {
+            	LOGGER.error(e.toString());
+            	e.printStackTrace();
+            }
+        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE&&piece==false)
             try {
             	takePiece();
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(howManyUnknown() >= 5)
+        else if(team.color==TeamColor.BLUE&&position.y>=board.goalAreaHeight&&lastAction != ActionType.DISCOVER)
         	try {
         		discover();
+        		counter++;
+        		lastdisc = !lastdisc;
         	} catch (Exception e) {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        else if(piece == true && tested == true ||
-                piece == false)
+        else if(team.color==TeamColor.RED&&position.y<board.goalAreaHeight+board.taskAreaHeight&&lastAction != ActionType.DISCOVER)
+        	try {
+        		discover();
+        		counter++;
+        		lastdisc = !lastdisc;
+        	} catch (Exception e) {
+        		LOGGER.error(e.toString());
+        		e.printStackTrace();
+        	}
+        else if((piece == true && tested == true) ||
+                (piece == false))
             try {
+            	//discover();
             	move(chooseDirection());
+            	lastdisc = !lastdisc;
             } catch (Exception e) {
             	LOGGER.error(e.toString());
 	            e.printStackTrace();
@@ -195,63 +253,201 @@ public class Player {
         else
         	try {
         		discover();
+        		counter++;
+        		lastdisc = !lastdisc;
         	} catch (Exception e) {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
     }
 
-    private int howManyUnknown()
+    private boolean howManyUnknown()
     {
         int counter = 0;
+        int total = 1;
         int x = position.x;
         int y = position.y;
 
         if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
             ++counter;
-        if(board.cellsGrid[x-1][y].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x-1][y+1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x-1][y-1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x+1][y].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x+1][y-1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x+1][y+1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x][y+1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
-        if(board.cellsGrid[x][y-1].getCellState() == Cell.CellState.UNKNOWN)
-            ++counter;
+        if(x>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x-1][y].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x>0&&y<board.boardHeight-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x-1][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x>0&&y>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x-1][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x<board.boardWidth-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x+1][y].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x<board.boardWidth-1&&y>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x+1][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(x<board.boardWidth-1&&y<board.boardHeight-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x+1][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(y<board.boardHeight-1)
+        {
+        	total++;
+	        if(board.cellsGrid[x][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
+        if(y>0)
+        {
+        	total++;
+	        if(board.cellsGrid[x][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	            ++counter;
+        }
 
-        return counter;
+        if(counter>total/2)
+        	return true;
+        else return false;
     }
 
     private Position.Direction chooseDirection()
     {
     	LOGGER.info("Player chooses direction");
-        int cellToMove[] = {-1, 1};
+        int cellToMove[] = {-1, -1};
 
-        if(piece == true && tested == true)
+        if(piece == true && findClosestGoal()[0]!=-1)
+        {
             cellToMove = findClosestGoal();
-        else if(findPiece()[0] != -1)
-            cellToMove = findPiece();
+            LOGGER.info("Moving towards goal");
+        }
+//        else if(piece==false&&findPiece()[0] != -1)
+//        {
+//        	dist.add(-1);
+//        	LOGGER.info("Moving towards piece");
+//            cellToMove = findPiece();
+//        }
         else
         {
-            cellToMove[0] = 0 + (int)(Math.random() * ((board.boardWidth - 0) + 1));
-            cellToMove[1] = board.goalAreaHeight + (int)(Math.random() * (((board.goalAreaHeight + board.taskAreaHeight) - board.goalAreaHeight) + 1));
+        	LOGGER.info("Checking distance");
+        	cellToMove = minDistance();
+        	if(cellToMove[0]==-1)
+        	{
+        		if(team.color==TeamColor.BLUE)
+        		{
+        			return Position.Direction.DOWN;
+        		}
+        		else
+        			return Position.Direction.UP;
+        	}
+        	
+            //cellToMove[0] = 0 + (int)(Math.random() * ((board.boardWidth - 0) + 1));
+            //cellToMove[1] = board.goalAreaHeight + (int)(Math.random() * (((board.goalAreaHeight + board.taskAreaHeight) - board.goalAreaHeight) + 1));
         }
 
         if(cellToMove[0] > position.x)
             return Position.Direction.RIGHT;
-        else if(cellToMove[0] > position.x)
+        else if(cellToMove[0] < position.x)
             return Position.Direction.LEFT;
-        else if(cellToMove[1] > position.y)
-            return Position.Direction.DOWN;
+        else if(team.color == TeamColor.BLUE)
+        {
+	        if(cellToMove[1] > position.y)
+	            return Position.Direction.DOWN;
+	        //else if(cellToMove[1]>position.y)
+	        else
+	            return Position.Direction.UP;
+        }
         else
-            return Position.Direction.UP;
+        {
+        	if(cellToMove[1] < position.y)
+	            return Position.Direction.UP;
+	        //else if(cellToMove[1]>position.y)
+        	else
+	            return Position.Direction.DOWN;
+        }
+    }
+    
+    private int[] minDistance()
+    {
+    	int[] pieceCell = {-1, -1};
+        int x = -1, y = -1;
+        int min = 999;
+        if(position.x>0)
+	        if(board.cellsGrid[position.x-1][position.y].distance<min&&board.cellsGrid[position.x-1][position.y].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x-1][position.y].distance;
+	        	x = position.x-1;
+	        	y = position.y;
+	        }
+        if(position.x<board.boardWidth-1)
+        	if(board.cellsGrid[position.x+1][position.y].distance<min&&board.cellsGrid[position.x+1][position.y].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y].distance;
+	        	x = position.x+1;
+	        	y = position.y;
+	        }
+        if(position.y>0)
+        	if(board.cellsGrid[position.x][position.y-1].distance<min&&board.cellsGrid[position.x][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x][position.y-1].distance;
+	        	x = position.x;
+	        	y = position.y-1;
+	        }
+        if(position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x][position.y+1].distance<min&&board.cellsGrid[position.x][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x][position.y+1].distance;
+	        	x = position.x;
+	        	y = position.y+1;
+	        }
+        if(position.x>0&&position.y>0)
+	        if(board.cellsGrid[position.x-1][position.y-1].distance<min&&board.cellsGrid[position.x-1][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x-1][position.y-1].distance;
+	        	x = position.x-1;
+	        	y = position.y-1;
+	        }
+        if(position.x>0&&position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x-1][position.y+1].distance<min&&board.cellsGrid[position.x-1][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x-1][position.y+1].distance;
+	        	x = position.x-1;
+	        	y = position.y+1;
+	        }
+        if(position.x<board.boardWidth-1&&position.y>0)
+        	if(board.cellsGrid[position.x+1][position.y-1].distance<min&&board.cellsGrid[position.x+1][position.y-1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y-1].distance;
+	        	x = position.x+1;
+	        	y = position.y-1;
+	        }
+        
+        if(position.x<board.boardWidth-1&&position.y<board.boardHeight-1)
+        	if(board.cellsGrid[position.x+1][position.y+1].distance<min&&board.cellsGrid[position.x+1][position.y+1].distance>=0)
+	        {
+	        	min = board.cellsGrid[position.x+1][position.y+1].distance;
+	        	x = position.x+1;
+	        	y = position.y+1;
+	        }
+        
+        LOGGER.info("Minimal distance is " + min);
+        dist.add(min);
+        pieceCell[0]=x;
+        pieceCell[1]=y;
+        return pieceCell;
     }
 
     private int[] findPiece()
@@ -259,9 +455,9 @@ public class Player {
         int[] pieceCell = {-1, -1};
         int x = -1, y = -1;
 
-        for(x = 0; x < board.boardWidth; ++x)
-            for(y = board.taskAreaHeight; y < board.goalAreaHeight + board.taskAreaHeight; ++y)
-                if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+        for(x = 0; x < board.boardWidth; x++)
+            for(y = board.goalAreaHeight; y < board.goalAreaHeight + board.taskAreaHeight; y++)
+                if(board.cellsGrid[x][y].cellState == Cell.CellState.PIECE)
                 {
                     pieceCell[0] = x;
                     pieceCell[1] = y;
@@ -274,31 +470,41 @@ public class Player {
     private int[] findClosestGoal()
     {
         int[] goalCell = {-1, -1};
-        int x = -1, y = -1;
+        int x = 0, y = 0;
 
         if(team.color == TeamColor.BLUE)
-            for(x = 0; x < board.boardWidth; ++x)
-                for(y = board.taskAreaHeight + board.goalAreaHeight; y < board.taskAreaHeight + 2 * board.goalAreaHeight; ++y)
-                    if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
-                        break;
-                    else
-                        for(x = 0; x < board.boardWidth; ++x)
-                            for(y = 0; y < board.taskAreaHeight; ++y)
-                                if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
-                                    break;
-
-        goalCell[0] = x;
-        goalCell[1] = y;
-        return  goalCell;
-    }
-
-    private void singleDiscover(int x, int y)
-    {
-        if (board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN &&
-                x >= 0 && x < board.boardWidth && y >= 0  && y < board.boardHeight)
         {
-            //board.cellsGrid[x][y].setCellState("Game Master returns");
+        	for(y = 0; y < board.goalAreaHeight; y++)
+        	{
+        		for(x = 0; x < board.boardWidth; x++)
+                    //if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+                	//if(counter<=y*board.boardWidth+x)
+        			if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
+                    {
+                    	goalCell[0] = x;
+                    	goalCell[1] = y;
+                    	return goalCell;
+                    }
+        	}
         }
+        else if(team.color == TeamColor.RED)
+        {
+        	for(y=board.goalAreaHeight+board.taskAreaHeight; y<board.boardHeight; y++)
+        	{
+	        	for(x=0; x<board.boardWidth; x++)
+	        	{
+        			//if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+        			//if(counter<=(y-(board.goalAreaHeight+board.taskAreaHeight))+x)
+	        		if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
+                    {
+                    	goalCell[0] = x;
+                    	goalCell[1] = y;
+                    	return goalCell;
+                    }
+	        	}
+        	}
+        }
+        return  goalCell;
     }
 
     private boolean CanMove(Position.Direction dir)
@@ -326,14 +532,14 @@ public class Player {
         	LOGGER.info("Cannot move down");
             return false;
         }
-        if(team.color == TeamColor.RED&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
-        {
-        	LOGGER.info("Approached blue goal area, cannot move down");
-            return false;
-        }
-        if(team.color == TeamColor.BLUE&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        if(team.color == TeamColor.BLUE&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
         {
         	LOGGER.info("Approached red goal area, cannot move down");
+            return false;
+        }
+        if(team.color == TeamColor.RED&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        {
+        	LOGGER.info("Approached blue goal area, cannot move down");
             return false;
         }
         return true;
@@ -346,26 +552,70 @@ public class Player {
 	        int y = position.y;
 	        
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.DISCOVER);
-	        message.put("playerGuid",playerGuid);
-	        message.put("position", position);
+	        //JSONObject position = new JSONObject();
+	        message.put("action", "discover");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
-	        String stat = (String)response.get("status");
+	        String read = client.receiveMessage();
+	        while(read==null)
+	        {
+	        	read = client.receiveMessage();
+	        }
+	        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	        MAPPER.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+	        List<Field> fields = Arrays.asList(MAPPER.readValue(read, Field[].class));
+	        //String stat = MAPPER.readValue(read, String.class);
+	        JsonNode jsonNode = MAPPER.readTree(read);
+	        //JsonNode jsonNode = MAPPER.readValue(read, JsonNode.class);
+	        JsonNode statnode = jsonNode.get("status");
+	        JsonNode actionnode = jsonNode.get("action");
+	        String action = actionnode.asText();
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = actionnode.asText();
+	        	on = false;
+	        	JsonNode result = jsonNode.get("result");
+	        	if(team.getColor()==TeamColor.BLUE&&result.asText().equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&result.asText().equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
+	        String stat = statnode.asText();
+	        JsonNode fieldnode = jsonNode.get("fields");
+	        String field = MAPPER.convertValue(fieldnode, String.class);
+	        fields = Arrays.asList(MAPPER.readValue(field, Field[].class));
+	        //JsonNode field = fieldnode.get("position");
+	        //List<Field> fields = MAPPER.readValue(read, new TypeReference<List<Field>>() {});
+	        //JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        //String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
-	        	List<Field> fields = new ArrayList<>();
+	        	posx.add(position.x);
+	        	posy.add(position.y);
+	        	//List<Field> fields = new ArrayList<>();
 	        	//ObjectMapper mapper = new ObjectMapper();
-	        	fields = (List<Field>)response.get("fields");
+	        	//fields = (List<Field>)response.get("fields");
 	            for(Field f : fields)
 	            {
-	            	board.cellsGrid[f.getPosition().x][f.getPosition().y].setCellState(f.cell.getCellState());
+	            	if(f.position.y>=board.goalAreaHeight&&f.position.y<board.goalAreaHeight+board.taskAreaHeight)
+	            		board.updateField(f);
 	            }
-	            //lastAction = ActionType.DISCOVER;
+	            LOGGER.info("Discovered");
 	        }
-	        LOGGER.info("Discovered");
+	        else
+	        {
+	        	LOGGER.info("Discovering failed");
+	        }
+	        lastAction = ActionType.DISCOVER;
 	    }
     }
 
@@ -373,26 +623,45 @@ public class Player {
 	    {
 	    	LOGGER.info("Moving");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.MOVE);
-	        message.put("playerGuid",playerGuid);
-	        message.put("direction", direction);
+	        message.put("action", "move");
+	        message.put("playerGuid",playerGuid.toString());
+	        message.put("direction", direction.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        
+	        LOGGER.info("Received move status");
+	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        //JSONParser parser = new JSONParser();
 	        //message = (JSONObject)parser.parse(response);
 	        String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
-	            Position oldPosition;
-	            oldPosition = position;
-	            position.changePosition(direction);
-	
-	            if (CanMove(direction))
-	                lastAction = ActionType.MOVE;
-	            else
-	                position = oldPosition;
+	        	if(CanMove(direction))
+	        		position.changePosition(direction);
 	        }
+	        lastAction = ActionType.MOVE;
 	        LOGGER.info("Moved");
 	    }
     }
@@ -400,13 +669,36 @@ public class Player {
     private void takePiece() throws IOException, ParseException {
 	    {
 	    	LOGGER.info("Picking up piece");
+	    	dist.add(0);
 	        lastAction = ActionType.PICKUP;
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.PICKUP);
-	        message.put("playerGuid",playerGuid);
+	        message.put("action", "pickup");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
@@ -416,6 +708,7 @@ public class Player {
 	        }
 	        else
 	        {
+	        	board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
 	        	LOGGER.info("Failed to pick up piece");
 	            return;
 	        }
@@ -426,22 +719,44 @@ public class Player {
 	    {
 	    	LOGGER.info("Testing piece");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.TEST);
-	        message.put("playerGuid",playerGuid);
+	        message.put("action", "test");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = (String)response.get("status");
-	        String res = (String)response.get("test");
+	        boolean res = (boolean)response.get("test");
 	        if(stat.equals("OK"))
-	            if(res=="false")
+	            if(res==false)
 	            {
 	            	LOGGER.info("Piece is a sham");
 	                lastAction = ActionType.DESTROY;
 	                piece = false;
 	                tested = false;
 	            }
-	            else if(res=="true")
+	            else if(res==true)
 	            {
 	            	LOGGER.info("Piece is good");
 	                lastAction = ActionType.TEST;
@@ -461,16 +776,39 @@ public class Player {
 	    {
 	    	LOGGER.info("Placing piece");
 	        JSONObject message = new JSONObject();
-	        message.put("action", ActionType.PLACE);
-	        message.put("playerGuid",playerGuid);
+	        message.put("action", "place");
+	        message.put("playerGuid",playerGuid.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
-	        JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
+	        String msg = null;
+	        while(msg==null)
+	        {
+	        	msg = client.receiveMessage();
+	        }
+	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = (String)response.get("status");
-	        String res = (String)response.get("test");
+	        String res = (String)response.get("placementResult");
+	        LOGGER.info("Placing at "+position.x+" "+position.y);
 	        if(stat.equals("OK"))
 	        {
-	            if(res=="correct")
+	            if(res=="Correct")
 	            {
 	                lastAction = ActionType.PLACE;
 	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.GOAL);
@@ -532,85 +870,5 @@ public class Player {
             	}
                 break;
         }
-    }
-
-    private JSONObject sendMessage(JSONObject message)
-    {
-        ActionType action = (ActionType)message.get("action");
-        JSONObject response = new JSONObject();
-        switch(action)
-        {
-            case TEST:
-                response.put("action", ActionType.TEST);
-                response.put("playerGuid", playerGuid);
-                if(piece == true)
-                {
-                    response.put("status", "OK");
-                    response.put("test", true);
-                }
-                else if(piece == false)
-                {
-                    response.put("status", "DENIED");
-                    response.put("test", null);
-                }
-                break;
-            case PICKUP:
-                response.put("action", ActionType.PICKUP);
-                response.put("playerGuid", playerGuid);
-                if(board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.PIECE)
-                    response.put("status", "OK");
-                else
-                    response.put("status", "DENIED");
-                break;
-            case PLACE:
-                response.put("action", ActionType.PICKUP);
-                response.put("playerGuid", playerGuid);
-                if(board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.GOAL)
-                {
-                    response.put("status", "OK");
-                    response.put("placementResult", "Correct");
-                }
-                else
-                {
-                    response.put("status","OK");
-                    response.put("placementResult","Pointless");
-                }
-                break;
-            case MOVE:
-                response.put("action", ActionType.MOVE);
-                response.put("playerGuid", playerGuid);
-                if(CanMove((Position.Direction)message.get("direction")))
-                {
-                    response.put("status", "OK");
-                }
-                else
-                {
-                    response.put("status", "DENIED");
-                }
-        }
-        return response;
-    }
-    
-    private JSONObject messenger(String message) throws ParseException, IOException {
-	    {
-	    	JSONParser jsonParser = new JSONParser();
-	        JSONObject msg = (JSONObject)jsonParser.parse(message);
-	        String action = (String)msg.get("action");
-	        switch(action)
-	        {
-	        case "setup":
-	        	msg.put("status", "OK");
-	        	break;
-	        case "connect":
-	        	msg.put("status", "OK");
-	        	break;
-	        case "ready":
-	        	msg.put("status", "YES");
-	        	break;
-	        default:
-	        	break;
-	        }
-	        return msg;
-	    }
     }
 }
