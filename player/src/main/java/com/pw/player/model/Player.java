@@ -54,6 +54,7 @@ public class Player {
     public boolean piece;
     public boolean tested;
     private int counter=0;
+    String lastmsg="";
     
 
     private InetAddress ipAddress;
@@ -156,6 +157,8 @@ public class Player {
                     	on = true;
                     }
                     else if(object.get("action").equals("start")&&on==true)
+                    	break;
+                    else if(on==false&&lastmsg.equals("end"))
                     	break;
                 }
                 else if(on)
@@ -567,6 +570,25 @@ public class Player {
 	        JsonNode jsonNode = MAPPER.readTree(read);
 	        //JsonNode jsonNode = MAPPER.readValue(read, JsonNode.class);
 	        JsonNode statnode = jsonNode.get("status");
+	        JsonNode actionnode = jsonNode.get("action");
+	        String action = actionnode.asText();
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = actionnode.asText();
+	        	on = false;
+	        	JsonNode result = jsonNode.get("result");
+	        	if(team.getColor()==TeamColor.BLUE&&result.asText().equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&result.asText().equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = statnode.asText();
 	        JsonNode fieldnode = jsonNode.get("fields");
 	        String field = MAPPER.convertValue(fieldnode, String.class);
@@ -611,8 +633,26 @@ public class Player {
 	        {
 	        	msg = client.receiveMessage();
 	        }
+	        
 	        LOGGER.info("Received move status");
 	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        //JSONParser parser = new JSONParser();
 	        //message = (JSONObject)parser.parse(response);
 	        String stat = (String)response.get("status");
@@ -642,6 +682,23 @@ public class Player {
 	        	msg = client.receiveMessage();
 	        }
 	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
@@ -672,6 +729,23 @@ public class Player {
 	        	msg = client.receiveMessage();
 	        }
 	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = (String)response.get("status");
 	        boolean res = (boolean)response.get("test");
 	        if(stat.equals("OK"))
@@ -712,6 +786,23 @@ public class Player {
 	        	msg = client.receiveMessage();
 	        }
 	        JSONObject response = (JSONObject)parser.parse(msg);
+	        String action = (String)response.get("action");
+	        if(action.equals("end"))
+	        {
+	        	lastmsg = action;
+	        	on = false;
+	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+            	{
+            		LOGGER.info("We won!");
+            	}
+	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	{
+	        		LOGGER.info("We won!");
+	        	}
+            	else
+            		LOGGER.info("We lost :(");
+	        	return;
+	        }
 	        String stat = (String)response.get("status");
 	        String res = (String)response.get("placementResult");
 	        LOGGER.info("Placing at "+position.x+" "+position.y);
@@ -779,85 +870,5 @@ public class Player {
             	}
                 break;
         }
-    }
-
-    private JSONObject sendMessage(JSONObject message)
-    {
-        ActionType action = (ActionType)message.get("action");
-        JSONObject response = new JSONObject();
-        switch(action)
-        {
-            case TEST:
-                response.put("action", ActionType.TEST);
-                response.put("playerGuid", playerGuid);
-                if(piece == true)
-                {
-                    response.put("status", "OK");
-                    response.put("test", true);
-                }
-                else if(piece == false)
-                {
-                    response.put("status", "DENIED");
-                    response.put("test", null);
-                }
-                break;
-            case PICKUP:
-                response.put("action", ActionType.PICKUP);
-                response.put("playerGuid", playerGuid);
-                if(board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.PIECE)
-                    response.put("status", "OK");
-                else
-                    response.put("status", "DENIED");
-                break;
-            case PLACE:
-                response.put("action", ActionType.PICKUP);
-                response.put("playerGuid", playerGuid);
-                if(board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.GOAL)
-                {
-                    response.put("status", "OK");
-                    response.put("placementResult", "Correct");
-                }
-                else
-                {
-                    response.put("status","OK");
-                    response.put("placementResult","Pointless");
-                }
-                break;
-            case MOVE:
-                response.put("action", ActionType.MOVE);
-                response.put("playerGuid", playerGuid);
-                if(CanMove((Position.Direction)message.get("direction")))
-                {
-                    response.put("status", "OK");
-                }
-                else
-                {
-                    response.put("status", "DENIED");
-                }
-        }
-        return response;
-    }
-    
-    private JSONObject messenger(String message) throws ParseException, IOException {
-	    {
-	    	JSONParser jsonParser = new JSONParser();
-	        JSONObject msg = (JSONObject)jsonParser.parse(message);
-	        String action = (String)msg.get("action");
-	        switch(action)
-	        {
-	        case "setup":
-	        	msg.put("status", "OK");
-	        	break;
-	        case "connect":
-	        	msg.put("status", "OK");
-	        	break;
-	        case "ready":
-	        	msg.put("status", "YES");
-	        	break;
-	        default:
-	        	break;
-	        }
-	        return msg;
-	    }
     }
 }
