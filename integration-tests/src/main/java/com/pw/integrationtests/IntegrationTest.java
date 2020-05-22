@@ -30,7 +30,7 @@ public class IntegrationTest {
 	};
 	private Runnable player = () -> {
 		String argsPlayer[] = new String[] {"0.0.0.0", "1300"};
-		PlayerApp.main("0.0.0.0",1300);
+		PlayerApp.main(argsPlayer);
 	};
 
 	@Before
