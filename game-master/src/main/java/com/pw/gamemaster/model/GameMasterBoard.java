@@ -46,7 +46,7 @@ public class GameMasterBoard extends Board {
             {
                 if (playerDTO.playerPosition.getY() < this.boardHeight - this.goalAreaHeight)
                 {
-                    this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid.toString());
+                    this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid);
                     this.cellsGrid[old_pos.getX()][old_pos.getY()].setPlayerGuids(null);
                     return playerDTO.playerPosition;
                 }
@@ -60,7 +60,7 @@ public class GameMasterBoard extends Board {
             {
                 if (playerDTO.playerPosition.getY()>this.goalAreaHeight) {
                     {
-                        this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid.toString());
+                        this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid);
                         this.cellsGrid[old_pos.getX()][old_pos.getY()].setPlayerGuids(null);
                         return playerDTO.playerPosition;
                     }
@@ -150,7 +150,7 @@ public class GameMasterBoard extends Board {
         if(this.getField(playerDTO.getPosition()).cell.getplayerGuids() !=null){
             return null;
         }
-        this.cellsGrid[playerDTO.playerPosition.getX()][playerDTO.playerPosition.getY()].setPlayerGuids((playerDTO.playerGuid.toString()));
+        this.cellsGrid[playerDTO.playerPosition.getX()][playerDTO.playerPosition.getY()].setPlayerGuids((playerDTO.playerGuid));
 
         return playerDTO.playerPosition;
     }

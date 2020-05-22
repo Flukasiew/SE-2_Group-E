@@ -180,21 +180,25 @@ class GameMasterBoardTest {
         GameMasterBoard gameMasterBoard = new GameMasterBoard(16,4,16);
         Position ret;
         PlayerDTO player_blue = new PlayerDTO();
+        player_blue.setPlayerGuid(UUID.randomUUID());
         player_blue.setPosition(new Position(7,8));
         player_blue.setPlayerTeamColor(TeamColor.BLUE);
 
         PlayerDTO player_red = new PlayerDTO();
+        player_red.setPlayerGuid(UUID.randomUUID());
         player_red.setPosition(new Position(7,8));
         player_red.setPlayerTeamColor(TeamColor.RED);
 
 
-        gameMasterBoard.cellsGrid[8][8].setPlayerGuids("test id");
+        gameMasterBoard.cellsGrid[8][8].setPlayerGuids(UUID.randomUUID());
         ret = gameMasterBoard.playerMove(player_blue, Position.Direction.RIGHT);
-        assertNull(ret);
+        assertEquals(8,ret.getX());
+        assertEquals(8,ret.getY());
 
-        gameMasterBoard.cellsGrid[8][8].setPlayerGuids("test id");
+        gameMasterBoard.cellsGrid[8][8].setPlayerGuids(UUID.randomUUID());
         ret = gameMasterBoard.playerMove(player_red, Position.Direction.RIGHT);
-        assertNull(ret);
+        assertEquals(8,ret.getX());
+        assertEquals(8,ret.getY());
     }
 
 
@@ -325,7 +329,7 @@ class GameMasterBoardTest {
         //Occupied spot
         pos = new Position(7,7);
         player_blue.setPosition(pos);
-        gameMasterBoard.cellsGrid[pos.getX()][pos.getY()].setPlayerGuids("test");
+        gameMasterBoard.cellsGrid[pos.getX()][pos.getY()].setPlayerGuids(UUID.randomUUID());
         ret = gameMasterBoard.placePlayer(player_blue);
         assertEquals(ret,null);
 

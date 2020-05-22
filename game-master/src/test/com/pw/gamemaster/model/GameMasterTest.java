@@ -34,7 +34,7 @@ class GameMasterTest {
     }
 
     @Test
-    void messageHandlerSetupNotOK() throws JSONException, ParseException, JsonProcessingException, UnexpectedActionException  {
+    void messageHandlerSetupNotOK() throws JSONException, ParseException, IOException, UnexpectedActionException  {
         JSONObject returnMessage = new JSONObject();
 
         JSONObject setupMessage = new JSONObject();
