@@ -39,6 +39,7 @@ public class IntegrationTest {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
 		executor.submit(server);
 		executor.submit(gameMaster);
+		Thread.sleep(1000);
 		for (int i = 0; i < playerCount; i++) {
 			executor.submit(player);
 		}

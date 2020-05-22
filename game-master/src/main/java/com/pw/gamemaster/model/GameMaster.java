@@ -200,9 +200,12 @@ public class GameMaster {
             ObjectMapper objectMapper = new ObjectMapper();
             if(blueWin) {
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
+                LOGGER.info("Blue team has won");
             } else if (redWin) {
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.RED);
+                LOGGER.info("Red team has won");
             } else {
+                LOGGER.warn("No winner has been decided");
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
             }
             simpleClient.sendMessage(objectMapper.writeValueAsString(gameMessageEndDTO));

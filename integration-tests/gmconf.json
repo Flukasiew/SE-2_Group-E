@@ -4,7 +4,7 @@
     "maxPieces": 12,
     "initialPieces": 12,
     "predefinedGoalPositions": [
-        [2, 1],
+        [0, 0],
         [3, 10],
         [2, 11]
     ],
