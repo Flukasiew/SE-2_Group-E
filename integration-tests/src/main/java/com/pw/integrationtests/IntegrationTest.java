@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class IntegrationTest {
 
 	@SneakyThrows
 	@Test
-	public void shouldCompleteGame() throws InterruptedException {
+	public void shouldCompleteGame() {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
 		executor.submit(server);
 		executor.submit(gameMaster);
@@ -47,8 +48,8 @@ public class IntegrationTest {
 
 	private static int totalThreadCount(int playerCount) {
 		int serverThreadCount = 5 + playerCount;
-		int gameMasterThreadCount = 3;
-		int playersThreadCount = playerCount * 2;
+		int gameMasterThreadCount = 1;
+		int playersThreadCount = playerCount;
 		return serverThreadCount + gameMasterThreadCount + playersThreadCount;
 	}
 }
