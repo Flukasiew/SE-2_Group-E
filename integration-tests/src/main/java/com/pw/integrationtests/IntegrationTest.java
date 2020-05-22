@@ -26,7 +26,7 @@ public class IntegrationTest {
 			e.printStackTrace();
 		}
 	};
-	private Runnable player = () -> PlayerApp.main(null);
+	private Runnable player = () -> PlayerApp.main("0.0.0.0",1300);
 
 	@Before
 	public void prepare() {
@@ -42,7 +42,7 @@ public class IntegrationTest {
 			executor.submit(player);
 		}
 
-		executor.awaitTermination(30, TimeUnit.MINUTES);
+		executor.awaitTermination(1, TimeUnit.MINUTES);
 	}
 
 	private static int totalThreadCount(int playerCount) {

@@ -106,6 +106,27 @@ public class Player {
     	//listen();
     }
 
+    public Player(String host,int port)
+    {
+        this.host = host;
+        this.port = port;
+        this.playerName = "Anon";
+        this.playerGuid = UUID.randomUUID();
+
+        piece = false;
+        tested = false;
+
+        this.client = new SimpleClient();
+
+        playerState = PlayerState.INITIALIZING;
+        LOGGER.info("Player initialized");
+        playerState = PlayerState.ACTIVE;
+
+
+        startComm();
+        //listen();
+    }
+
     public void listen()
     {
     	try {

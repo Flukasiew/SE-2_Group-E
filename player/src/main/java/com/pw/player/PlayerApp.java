@@ -3,8 +3,8 @@ import com.pw.player.model.*;
 
 public class PlayerApp {
 
-	public static void main(String[] args) {
-		Player player = new Player();
+	public static void main(String host, int port) {
+		Player player = new Player(host, port);
 		player.listen();
 	}
 }
