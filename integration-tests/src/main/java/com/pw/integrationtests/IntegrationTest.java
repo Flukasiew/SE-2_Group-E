@@ -22,12 +22,16 @@ public class IntegrationTest {
 	private Runnable server = () -> ServerApp.main(null);
 	private Runnable gameMaster = () -> {
 		try {
-			GameMasterApp.main("0.0.0.0", 1300);
+			String[] argsGM = new String[] {"0.0.0.0", "1300"};
+			GameMasterApp.main(argsGM);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	};
-	private Runnable player = () -> PlayerApp.main("0.0.0.0",1300);
+	private Runnable player = () -> {
+		String argsPlayer[] = new String[] {"0.0.0.0", "1300"};
+		PlayerApp.main("0.0.0.0",1300);
+	};
 
 	@Before
 	public void prepare() {
