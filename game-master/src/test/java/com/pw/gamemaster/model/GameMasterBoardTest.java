@@ -426,7 +426,7 @@ class GameMasterBoardTest {
         gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
 
         ret = gameMasterBoard.discover(new Position(6,5));
-        int[] outs = {2,2,3,1,1,2,0,0,1};
+        int[] outs = {1,0,0,2,1,1,3,2,2};
         for(int i=0;i<ret.size();i++)
         {
             assertEquals(outs[i],ret.get(i).getCell().distance);
