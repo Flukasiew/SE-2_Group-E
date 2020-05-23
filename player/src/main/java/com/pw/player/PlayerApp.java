@@ -1,14 +1,18 @@
 package com.pw.player;
 
 import com.pw.player.model.*;
+import lombok.extern.java.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PlayerApp {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApp.class);
 
     public static void main(String[] args) {
+        LOGGER.info("Player app started");
         if (args.length != 2) {
+            System.out.println("Arguemnts: host_address port_number\nDefault:");
+            System.out.println("0.0.0.0 1300");
             LOGGER.error("Player initialization failed");
             return;
         }
@@ -23,5 +27,6 @@ public class PlayerApp {
         } catch (Exception e) {
 			LOGGER.error("Error occured in player" + e.toString());
 		}
+        LOGGER.info("Player app finished");
     }
 }

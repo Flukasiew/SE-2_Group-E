@@ -19,10 +19,13 @@ import java.util.Iterator;
 
 public class GameMasterApp {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GameMaster.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GameMasterApp.class);
 
     public static void main(String[] args) throws IOException, ParseException, UnexpectedActionException {
+        LOGGER.info("GM app started");
         if (args.length != 2) {
+            System.out.println("Arguemnts: host_address port_number\nDefault:");
+            System.out.println("0.0.0.0 1300");
             LOGGER.error("GM initialization failed");
             return;
         }

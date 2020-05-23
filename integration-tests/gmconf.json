@@ -17,5 +17,8 @@
     "delayDiscover": 50,
     "delayTest": 50,
     "delayPick": 50,
-    "delayPlace": 50
+    "delayPlace": 50,
+    "startupTimeLimitInSeconds": 10,
+    "playersConnectTimeLimitInSeconds": 80,
+    "gameMsgTimeLimitInSeconds": 10
 }

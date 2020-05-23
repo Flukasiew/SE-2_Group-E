@@ -1,18 +1,12 @@
 package com.pw.gamemaster.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.pw.common.dto.GameMessageEndDTO;
-import com.pw.common.dto.GameSetupDTO;
 import com.pw.common.dto.PlayerDTO;
 import com.pw.common.model.*;
 import com.pw.common.model.Action;
 import com.pw.common.model.SimpleClient;
-import com.pw.gamemaster.exception.GameSetupException;
-import com.pw.gamemaster.exception.PlayerNotConnectedException;
-import com.pw.gamemaster.exception.UnexpectedActionException;
-import lombok.extern.java.Log;
+import com.pw.gamemaster.exception.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -20,12 +14,9 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.RuntimeErrorException;
-import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
@@ -47,12 +38,13 @@ public class GameMaster {
     private List<UUID> teamBlueGuids;
 
     private SimpleClient simpleClient;
-    private String logFilePath = "log_gm.txt";
     private Map<UUID, PlayerDTO> playersDTO;
     private Map<UUID, Boolean> readyStatus;
     private Map<UUID, Boolean> playerPieces;
     private List<UUID> connectedPlayers;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private long timer;
 
     public GameMaster() {
         teamBlueGuids = new ArrayList<UUID>();
@@ -145,45 +137,67 @@ public class GameMaster {
     }
 
     public void listen() throws IOException, ParseException, UnexpectedActionException {
-        long startTime = System.currentTimeMillis();
         String msg = "empty";
-        Boolean redWin = false, blueWin = false;
+        Boolean redWin = false, blueWin = false, timeE = true;
         GameMessageEndDTO gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
         ObjectMapper objectMapper = new ObjectMapper();
         LOGGER.info("Game master has started listening");
         try {
             sleep(1000);
-            while (board == null && System.currentTimeMillis() - startTime < 10000) {
+            // wait for setup
+            LOGGER.info("Waiting for setup");
+            timer = System.currentTimeMillis();
+            while (board == null && (timeE = System.currentTimeMillis() - timer < this.configuration.startupTimeLimit)) {
                 msg = simpleClient.receiveMessage();
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
                     LOGGER.info("Message returned", jsonObject.toJSONString());
-                    startTime = System.currentTimeMillis();
+                    //startTime = System.currentTimeMillis();
                 }
             }
-            while (!checkReadyGame() && System.currentTimeMillis() - startTime < 10000) {
+            LOGGER.info("Setup loop done");
+            if (!timeE) {
+                throw new TimeLimitExceededException("Game message time limit exceeded");
+            } else if (board == null) {
+                throw new SetupFailedException("Board is null");
+            }
+            // wait for players
+            LOGGER.info("Waiting for players");
+            timer = System.currentTimeMillis();
+            while (!checkReadyGame() && (timeE = System.currentTimeMillis() - timer < this.configuration.playersConnectTimeLimit)) {
                 msg = simpleClient.receiveMessage();
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
                     LOGGER.info("Message returned", jsonObject.toJSONString());
-                    startTime = System.currentTimeMillis();
                 }
             }
+            LOGGER.info("Player connections loop done");
+            if (!timeE) {
+                throw new TimeLimitExceededException("Game message time limit exceeded");
+            } else if (!checkReadyGame()) {
+                throw new GameNotReadyException("Game tried to start when it was not ready");
+            }
+            // play actual game
             startGame();
-            while (!(redWin = board.checkWinCondition(TeamColor.RED)) && !(blueWin = board.checkWinCondition(TeamColor.BLUE)) && System.currentTimeMillis() - startTime < 10000) {
+            timer = System.currentTimeMillis();
+            while (!(redWin = board.checkWinCondition(TeamColor.RED)) && !(blueWin = board.checkWinCondition(TeamColor.BLUE)) && (timeE = System.currentTimeMillis() - timer < this.configuration.gameMsgTimeLimit)) {
                 msg = simpleClient.receiveMessage();
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
                     JSONObject jsonObject = messageHandler(msg);
                     simpleClient.sendMessage(jsonObject.toJSONString());
                     LOGGER.info("Message returned", jsonObject.toJSONString());
-                    startTime = System.currentTimeMillis();
+                    timer = System.currentTimeMillis();
                 }
             }
+            if (!timeE) {
+                throw new TimeLimitExceededException("Game message time limit exceeded");
+            }
+            LOGGER.info("Play game loop done");
             if (blueWin) {
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
                 LOGGER.info("Blue team has won");
@@ -195,7 +209,7 @@ public class GameMaster {
                 gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
             }
         } catch (Exception e) {
-            LOGGER.error("Exception occured when listening " + e.toString() + " from " + msg, e.toString());
+            LOGGER.error("Exception occured when listening " + e.toString());
         } finally {
             simpleClient.sendMessage(objectMapper.writeValueAsString(gameMessageEndDTO));
             LOGGER.info("End game message sent");
@@ -221,7 +235,9 @@ public class GameMaster {
                                                                   ((Long)jsonObject.get("boardGoalHeight")).intValue(), ((Long)jsonObject.get("delayDestroyPiece")).intValue(),
                                                                   ((Long)jsonObject.get("delayNextPieceplace")).intValue(), ((Long)jsonObject.get("delayMove")).intValue(),
                                                                   ((Long)jsonObject.get("delayDiscover")).intValue(), ((Long)jsonObject.get("delayTest")).intValue(),
-                                                                  ((Long)jsonObject.get("delayPick")).intValue(), ((Long)jsonObject.get("delayPlace")).intValue());
+                                                                  ((Long)jsonObject.get("delayPick")).intValue(), ((Long)jsonObject.get("delayPlace")).intValue(),
+                                                                  (Long)jsonObject.get("startupTimeLimitInSeconds"), (Long)jsonObject.get("playersConnectTimeLimitInSeconds"),
+                                                                  (Long)jsonObject.get("gameMsgTimeLimitInSeconds"));
         this.configuration = gmc; // delete later
         return gmc;
     }
@@ -250,6 +266,10 @@ public class GameMaster {
         jsonObject.put("delayTest", this.configuration.delayTest);
         jsonObject.put("delayPick", this.configuration.delayPick);
         jsonObject.put("delayPlace", this.configuration.delayPlace);
+        jsonObject.put("gameMsgTimeLimitInSeconds", this.configuration.gameMsgTimeLimit / 1000);
+        jsonObject.put("playersConnectTimeLimitInSeconds", this.configuration.playersConnectTimeLimit / 1000);
+        jsonObject.put("startupTimeLimitInSeconds", this.configuration.startupTimeLimit / 1000);
+
 
         FileWriter file = new FileWriter(path);
         file.write(jsonObject.toJSONString());
@@ -258,7 +278,8 @@ public class GameMaster {
     }
 
     private void putNewPiece() {
-        if(this.board != null) {
+        if (this.board != null) {
+            LOGGER.info("Placing new piece on the board");
             this.board.generatePiece();
         }
     }
@@ -342,7 +363,7 @@ public class GameMaster {
     }
 
     // return type not specified in specifiaction
-    public JSONObject messageHandler(String message) throws ParseException, UnexpectedActionException, IOException {
+    public JSONObject messageHandler(String message) throws ParseException, UnexpectedActionException, IOException, InvalidMoveException {
         JSONParser jsonParser = new JSONParser();
         JSONObject msg = (JSONObject)jsonParser.parse(message);
         String action = (String)msg.get("action");
@@ -364,6 +385,7 @@ public class GameMaster {
             // setup msgs
             case "setup":
                 try {
+                    LOGGER.info("Setup message received");
                     this.setupGame();
                     //this.startGame();
                     msg.put("status", "OK");
@@ -382,6 +404,7 @@ public class GameMaster {
                 } else if (teamRedGuids.size() < this.configuration.maxTeamSize) {
                     teamRedGuids.add(uuid);
                 }
+                LOGGER.info("Player " + uuid.toString() + " connected");
                 msg.put("status", "OK");
                 return msg;
             case "ready":
@@ -411,7 +434,7 @@ public class GameMaster {
                         direction = Position.Direction.RIGHT;
                         break;
                     default:
-                        throw new IllegalStateException("Unexpected value: " + directionString); // implement new exception later on
+                        throw new InvalidMoveException("Unexpected value: " + directionString); // implement new exception later on
                 }
                 PlayerDTO playerDTO = playersDTO.get(uuid);
                 Position newPosition = board.playerMove(playerDTO, direction);
@@ -419,9 +442,7 @@ public class GameMaster {
                 if (newPosition == null) {
                     status = "DENIED";
                     msg.put("position", null);
-                    LOGGER.info("X:" + playerDTO.playerPosition.getX() + " Y: " + playerDTO.playerPosition.getY() + " "
-                                        + "Width:" + board.boardWidth + "Height" + board.boardHeight + "Color" + playerDTO.playerTeamColor
-                                        + "H-GAH: " + (board.boardHeight - board.goalAreaHeight) + "direction: " + directionString);
+                    LOGGER.info("Move from player " + uuid.toString() + " denied");
                 } else {
                     status = "OK";
                     positionJSON.put("x", newPosition.x);
@@ -437,7 +458,7 @@ public class GameMaster {
                 if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
                     status = "OK";
                     playerPieces.replace(uuid, true);
-                    this.board.generatePiece();
+                    this.putNewPiece();
                 } else {
                     status = "DENIED";
                 }
@@ -454,6 +475,7 @@ public class GameMaster {
                     boolean boolStatus = Math.random() > (1 - configuration.shamProbability);
                     if (!boolStatus) {
                         playerPieces.replace(uuid, false);
+                        this.putNewPiece();
                     }
                     msg.put("test", boolStatus);
                     msg.put("status", "OK");
