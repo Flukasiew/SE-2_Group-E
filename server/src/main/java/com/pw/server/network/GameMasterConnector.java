@@ -65,11 +65,17 @@ public class GameMasterConnector {
         reader = ioHandler.getReader(gameMasterSocket.getInputStream());
     }
 
-    public void setup() throws IOException, GameMasterSetupException {
+    public void setup() throws IOException, GameMasterSetupException, InterruptedException {
         sendSetupMessage();
 
         String message;
-        while ((message = reader.readLine()) != null) {
+        while(!reader.ready()) {
+            if (Thread.interrupted()) {
+                LOGGER.info("Thread interrupted, abruptly shutting down...");
+                throw new InterruptedException();
+            }
+        }
+        if ((message = reader.readLine()) != null) {
             GameSetupStatusDTO gameSetupStatusDTO = getSetupStatusMessage(message);
 
             if (gameSetupStatusDTO != null && gameSetupStatusDTO.getAction() == Action.setup) {
@@ -77,7 +83,6 @@ public class GameMasterConnector {
                     LOGGER.info("Game master returned OK status");
                     gameMasterReader = new GameMasterReader(gameMasterSocket, ioHandler, messages);
                     gameMasterReader.start();
-                    break;
                 } else if (gameSetupStatusDTO.getStatus() == GameSetupStatus.DENIED) {
                     throw new GameMasterSetupException("Game master returned DENIED setup status");
                 }

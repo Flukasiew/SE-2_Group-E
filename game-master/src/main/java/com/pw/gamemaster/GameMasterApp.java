@@ -1,21 +1,15 @@
 package com.pw.gamemaster;
 
-import com.pw.gamemaster.exception.UnexpectedActionException;
-import com.pw.gamemaster.model.GameMaster;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Iterator;
+import com.pw.gamemaster.exception.UnexpectedActionException;
+import com.pw.gamemaster.model.GameMaster;
 
 public class GameMasterApp {
 

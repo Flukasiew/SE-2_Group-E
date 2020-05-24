@@ -1,7 +1,7 @@
 {
   "portNumber": 1300,
   "ipAddress": "0.0.0.0",
-  "gameMasterConnectionTimeout": 300000,
+  "gameMasterConnectionTimeout": 2000,
   "playerConnectionTimeout": 300000,
   "playerConnectionsLimit": 20,
   "retriesLimit": 5
