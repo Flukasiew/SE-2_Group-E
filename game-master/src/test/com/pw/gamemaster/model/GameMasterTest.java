@@ -1,6 +1,7 @@
-package com.pw.gamemaster.model;
+package pw.gamemaster.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.pw.gamemaster.exception.InvalidMoveException;
 import com.pw.gamemaster.exception.UnexpectedActionException;
 import com.pw.gamemaster.model.GameMaster;
 import org.json.JSONException;
@@ -20,7 +21,7 @@ class GameMasterTest {
     String pathWrongGMConf = "test.json";
 
     @Test
-    void messageHandlerSetupOK() throws IOException, ParseException, JSONException, UnexpectedActionException  {
+    void messageHandlerSetupOK() throws IOException, ParseException, JSONException, UnexpectedActionException, InvalidMoveException {
         gm.loadConfigurationFromJson(path);
         JSONObject returnMessage = new JSONObject();
 
@@ -34,7 +35,7 @@ class GameMasterTest {
     }
 
     @Test
-    void messageHandlerSetupNotOK() throws JSONException, ParseException, JsonProcessingException, UnexpectedActionException  {
+    void messageHandlerSetupNotOK() throws JSONException, ParseException, IOException, UnexpectedActionException, InvalidMoveException {
         JSONObject returnMessage = new JSONObject();
 
         JSONObject setupMessage = new JSONObject();
@@ -46,7 +47,7 @@ class GameMasterTest {
     }
 
     @Test
-    void messageHandlerConnectPlayerOK() throws IOException, ParseException, JSONException, UnexpectedActionException  {
+    void messageHandlerConnectPlayerOK() throws IOException, ParseException, JSONException, UnexpectedActionException, InvalidMoveException {
         gm.loadConfigurationFromJson(path);
         JSONObject connectMsg = new JSONObject();
         connectMsg.put("action", "connect");
@@ -61,7 +62,7 @@ class GameMasterTest {
     }
 
     @Test
-    void messageHandlerConnectPlayerNotOK() throws IOException, ParseException, JSONException, UnexpectedActionException  {
+    void messageHandlerConnectPlayerNotOK() throws IOException, ParseException, JSONException, UnexpectedActionException, InvalidMoveException {
         gm.loadConfigurationFromJson(pathWrongGMConf);
         JSONObject connectMsg = new JSONObject();
         connectMsg.put("action", "connect");
@@ -84,7 +85,7 @@ class GameMasterTest {
     }
 
     @Test
-    void messageHandlerReadyNotOK() throws IOException, ParseException, JSONException, UnexpectedActionException  {
+    void messageHandlerReadyNotOK() throws IOException, ParseException, JSONException, UnexpectedActionException, InvalidMoveException {
         gm.loadConfigurationFromJson(path);
         JSONObject readyMsg = new JSONObject();
         readyMsg.put("action", "ready");
@@ -97,7 +98,7 @@ class GameMasterTest {
     }
 
     @Test
-    void messageHandlerReadyOK() throws IOException, ParseException, JSONException, UnexpectedActionException {
+    void messageHandlerReadyOK() throws IOException, ParseException, JSONException, UnexpectedActionException, InvalidMoveException {
         gm.loadConfigurationFromJson(path);
         JSONObject readyMsg = new JSONObject();
         readyMsg.put("action", "ready");

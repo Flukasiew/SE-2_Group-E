@@ -4,8 +4,7 @@
     "maxPieces": 4,
     "initialPieces": 3,
     "predefinedGoalPositions": [
-        [3, 0],
-        [2, 1],
+        [0, 0],
         [3, 10],
         [2, 11]
     ],
@@ -18,5 +17,8 @@
     "delayDiscover": 50,
     "delayTest": 50,
     "delayPick": 50,
-    "delayPlace": 50
+    "delayPlace": 50,
+    "startupTimeLimitInSeconds": 10,
+    "playersConnectTimeLimitInSeconds": 80,
+    "gameMsgTimeLimitInSeconds": 10
 }

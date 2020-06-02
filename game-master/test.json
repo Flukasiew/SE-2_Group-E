@@ -30,5 +30,8 @@
     ],
     "boardGoalHeight": 3,
     "delayPlace": 50,
-    "delayTest": 50
+    "delayTest": 50,
+    "startupTimeLimitInSeconds": 10,
+    "playersConnectTimeLimitInSeconds": 80,
+    "gameMsgTimeLimitInSeconds": 10
 }

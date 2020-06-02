@@ -10,7 +10,7 @@ import java.util.UUID;
 public class Cell {
     public CellState cellState;
     public int distance;
-    public String playerGuids;
+    public UUID playerGuids;
 
     public enum CellState {
         EMPTY,
@@ -43,11 +43,11 @@ public class Cell {
     public int getDistance(){ return this.distance;}
     public void setDistance(int distance){ this.distance = distance;}
 
-    public String getplayerGuids(){
+    public UUID getplayerGuids(){
         return this.playerGuids;
     }
 
-    public void setPlayerGuids(String uuid){
+    public void setPlayerGuids(UUID uuid){
         this.playerGuids = uuid;
     }
 }

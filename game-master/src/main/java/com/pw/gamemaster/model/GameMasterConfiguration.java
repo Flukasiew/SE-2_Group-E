@@ -24,11 +24,14 @@ public class GameMasterConfiguration {
     public int delayTest;
     public int delayPick;
     public int delayPlace;
-
+    public long startupTimeLimit;
+    public long playersConnectTimeLimit;
+    public long gameMsgTimeLimit;
 
     public GameMasterConfiguration(double shamProbability, int maxTeamSize, int maxPieces, int initialPieces, Point[] predefinedGoalPositions,
                                    int boardWidth, int boardTaskHeight, int boardGoalHeight, int delayDestroyPiece, int delayNextPieceplace,
-                                   int delayMove, int delayDiscover, int delayTest, int delayPick, int delayPlace) {
+                                   int delayMove, int delayDiscover, int delayTest, int delayPick, int delayPlace,
+                                   long startupTimeLimit, long playersConnectTimeLimit, long gameMsgTimeLimit) {
 
         this.shamProbability = shamProbability;
         this.maxTeamSize = maxTeamSize;
@@ -45,6 +48,9 @@ public class GameMasterConfiguration {
         this.delayTest = delayTest;
         this.delayPick = delayPick;
         this.delayPlace = delayPlace;
+        this.startupTimeLimit = startupTimeLimit*1000;
+        this.playersConnectTimeLimit = playersConnectTimeLimit*1000;
+        this.gameMsgTimeLimit = gameMsgTimeLimit*1000;
     }
 
     public boolean checkData() {
@@ -56,6 +62,7 @@ public class GameMasterConfiguration {
         if(boardTaskHeight<=0) return false;
         if(boardGoalHeight<=0) return false;
         if(predefinedGoalPositions.length>boardGoalHeight*boardWidth) return false;
+        if(startupTimeLimit<0 || playersConnectTimeLimit<0 || gameMsgTimeLimit<0) return false;
         return true;
     }
 }

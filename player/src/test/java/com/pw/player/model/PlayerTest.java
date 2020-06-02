@@ -251,7 +251,7 @@ public class PlayerTest {
     @Test
     public void MovDownTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,13), client);
+        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,13), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();

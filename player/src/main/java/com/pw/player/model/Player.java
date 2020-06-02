@@ -55,7 +55,7 @@ public class Player {
     public boolean tested;
     private int counter=0;
     String lastmsg="";
-    
+    private long timer;
 
     private InetAddress ipAddress;
     private int portNumber; // we can think about using InetSocketAddress from java.net
@@ -106,18 +106,42 @@ public class Player {
     	//listen();
     }
 
+    public Player(String host,int port)
+    {
+        this.host = host;
+        this.port = port;
+        this.playerName = "Anon";
+        this.playerGuid = UUID.randomUUID();
+
+        piece = false;
+        tested = false;
+
+        this.client = new SimpleClient();
+
+        playerState = PlayerState.INITIALIZING;
+        LOGGER.info("Player initialized");
+        playerState = PlayerState.ACTIVE;
+
+
+        startComm();
+        //listen();
+    }
+
     public void listen()
     {
+        timer = System.currentTimeMillis();
     	try {
-            while (true) {
+            while (true && timer-System.currentTimeMillis()<5000) {
                 String msg = client.receiveMessage();
                 //LOGGER.info(msg);
                 if(msg!=null && !msg.isEmpty())
                 {
+                    timer = System.currentTimeMillis();
                 	JSONParser parser = new JSONParser();
                     JSONObject object = (JSONObject)parser.parse(msg);
                     if(object.get("action")=="end")
                     {
+                        lastmsg = "end";
                     	on = false;
                     	if(team.getColor()==(TeamColor)object.get("result"))
                     	{
@@ -159,18 +183,22 @@ public class Player {
                     else if(object.get("action").equals("start")&&on==true)
                     	break;
                     else if(on==false&&lastmsg.equals("end"))
+
                     	break;
                 }
                 else if(on)
                 {
                 	makeAction();
                 }
+                else if(on==false&&lastmsg.equals("end"))
+                    break;
             }
         }
         catch (Exception e) {
             LOGGER.error("Exception occured when listening", e.toString());
             LOGGER.info(e.toString());
         }
+        LOGGER.info("Player ended");
     }
 
     public void startComm()
@@ -188,6 +216,7 @@ public class Player {
 
     public void makeAction()
     {
+        timer = System.currentTimeMillis();
     	LOGGER.info("Choosing action");
         if(piece == true && tested == false)
         	try {

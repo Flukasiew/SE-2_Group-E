@@ -76,7 +76,7 @@ public class GameMasterConnectorTest {
     }
 
     @Test
-    public void shouldSetupGameMaster() throws IOException, GameMasterSetupException {
+    public void shouldSetupGameMaster() throws IOException, GameMasterSetupException, InterruptedException {
         String message = new ObjectMapper().writeValueAsString(
                 new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK));
 
