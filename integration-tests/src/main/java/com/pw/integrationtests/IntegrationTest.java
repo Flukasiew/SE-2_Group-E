@@ -41,7 +41,7 @@ public class IntegrationTest {
 
 	@SneakyThrows
 	@Test
-	public void shouldCompleteGame() {
+	public void shouldCompleteGame() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
 		executor.submit(server);
 		executor.submit(gameMaster);
@@ -50,12 +50,12 @@ public class IntegrationTest {
 			executor.submit(player);
 		}
 
-		assertThat(executor.awaitTermination(1, TimeUnit.MINUTES)).isTrue();
+		assertThat(executor.awaitTermination(30, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@SneakyThrows
 	@Test
-	public void shouldEndGameWhenGameMasterDisconnects() {
+	public void shouldEndGameWhenGameMasterDisconnects() throws InterruptedException {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
 		executor.submit(server);
 		var gameMasterFuture = executor.submit(gameMaster);
@@ -66,11 +66,11 @@ public class IntegrationTest {
 
 		Thread.sleep(5000);
 		gameMasterFuture.cancel(true);
-		assertThat(executor.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executor.awaitTermination(1, TimeUnit.SECONDS));
 	}
 
 	private static int totalThreadCount(int playerCount) {
-		int serverThreadCount = 4 + playerCount;
+		int serverThreadCount = 4 +  playerCount;
 		int gameMasterThreadCount = 1;
 		int playersThreadCount = playerCount;
 		return serverThreadCount + gameMasterThreadCount + playersThreadCount;
