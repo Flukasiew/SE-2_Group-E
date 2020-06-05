@@ -1,8 +1,7 @@
 package com.pw.common.model;
 
 import lombok.Data;
-import lombok.Setter;
-import lombok.Getter;
+import org.json.simple.JSONObject;
 
 import java.util.UUID;
 
@@ -25,12 +24,21 @@ public class Cell {
         this.cellState = CellState.EMPTY;
     }
 
-    public Field getField(Position position ){
-        Field new_field = new Field();
-        new_field.cell=this;
-        new_field.position=position;
-        return new_field;
+    public JSONObject getJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("cellState", cellState.toString());
+        jsonObject.put("distance", distance);
+        jsonObject.put("playerGuid", playerGuids.toString());
+
+        return jsonObject;
     }
+
+//    public Field getField(Position position ){
+//        Field new_field = new Field();
+//        new_field.cell=this;
+//        new_field.position=position;
+//        return new_field;
+//    }
 
     public CellState getCellState() {
         return this.cellState;

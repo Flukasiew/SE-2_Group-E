@@ -28,12 +28,12 @@ public class GameMaster {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameMaster.class);
 
     public GameMasterBoard board;
-    public GameMasterStatus status;
-    private int portNumber;
-    private InetAddress ipAddress;
+//    public GameMasterStatus status;
+//    private int portNumber;
+//    private InetAddress ipAddress;
     private GameMasterConfiguration configuration;
-    private int blueTeamGoals;
-    private int redTeamGoals;
+//    private int blueTeamGoals;
+//    private int redTeamGoals;
     private List<UUID> teamRedGuids;
     private List<UUID> teamBlueGuids;
 
@@ -42,7 +42,7 @@ public class GameMaster {
     private Map<UUID, Boolean> readyStatus;
     private Map<UUID, Boolean> playerPieces;
     private List<UUID> connectedPlayers;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+//    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private long timer;
 
@@ -56,11 +56,11 @@ public class GameMaster {
 
     public GameMaster(String host, int portNumber, Path path) throws IOException, ParseException, UnexpectedActionException {
         LOGGER.info("Game master created");
-        teamBlueGuids = new ArrayList<UUID>();
-        teamRedGuids = new ArrayList<UUID>();
-        connectedPlayers = new ArrayList<UUID>();
-        readyStatus = new HashMap<UUID, Boolean>();
-        playersDTO = new HashMap<UUID, PlayerDTO>();
+        teamBlueGuids = new ArrayList<>();
+        teamRedGuids = new ArrayList<>();
+        connectedPlayers = new ArrayList<>();
+        readyStatus = new HashMap<>();
+        playersDTO = new HashMap<>();
         this.loadConfigurationFromJson(path.toString());
         LOGGER.info("configuration loaded");
         simpleClient = new SimpleClient();
@@ -69,7 +69,7 @@ public class GameMaster {
     }
 
     private void initPlayerPieces() {
-        playerPieces = new HashMap<UUID, Boolean>();
+        playerPieces = new HashMap<>();
         for (UUID uuid : connectedPlayers) {
             playerPieces.put(uuid, false);
         }
@@ -136,8 +136,8 @@ public class GameMaster {
                 2 * this.configuration.maxTeamSize == connectedPlayers.size();
     }
 
-    public void listen() throws IOException, ParseException, UnexpectedActionException {
-        String msg = "empty";
+    public void listen() throws IOException {
+        String msg;
         Boolean redWin = false, blueWin = false, timeE = true;
         GameMessageEndDTO gameMessageEndDTO = new GameMessageEndDTO(Action.end, null);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -212,6 +212,7 @@ public class GameMaster {
             LOGGER.error("Exception occured when listening " + e.toString());
         } finally {
             simpleClient.sendMessage(objectMapper.writeValueAsString(gameMessageEndDTO));
+            simpleClient.stopConnection();
             LOGGER.info("End game message sent");
         }
         LOGGER.info("Game master has finished listening");
@@ -502,13 +503,17 @@ public class GameMaster {
                 return msg;
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
-                ObjectMapper mapper = new ObjectMapper();
+                JSONArray jsonArray = new JSONArray();
+                //ObjectMapper mapper = new ObjectMapper();
                 if (fieldList.size() == 0) {
                     msg.put("status", "DENIED");
                 } else {
                     msg.put("status", "OK");
                 }
-                msg.put("fields", mapper.writeValueAsString(fieldList));
+                for (Field xd: fieldList) {
+                    jsonArray.add(xd.getJson());
+                }
+                msg.put("fields", jsonArray);
                 return msg;
 
             default:
