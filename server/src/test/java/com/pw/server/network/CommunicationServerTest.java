@@ -196,7 +196,6 @@ public class CommunicationServerTest {
 
     private void mockGameMasterAndPlayersSetup() throws Exception {
         doNothing().when(gameMasterConnector).connect();
-        doNothing().when(gameMasterConnector).setup();
         doReturn(gameMasterWriter).when(gameMasterConnector).getWriter();
 
         doNothing().when(playersConnector).start();

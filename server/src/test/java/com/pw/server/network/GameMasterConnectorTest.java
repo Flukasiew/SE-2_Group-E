@@ -74,33 +74,4 @@ public class GameMasterConnectorTest {
 
         assertThrows(GameMasterSetupException.class, () -> gameMasterConnector.connect());
     }
-
-    @Test
-    public void shouldSetupGameMaster() throws IOException, GameMasterSetupException, InterruptedException {
-        String message = new ObjectMapper().writeValueAsString(
-                new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK));
-
-        gameMasterConnector.setWriter(mock(PrintWriter.class));
-        BufferedReader bufferedReader = mock(BufferedReader.class);
-        doReturn(message).when(bufferedReader).readLine();
-        gameMasterConnector.setReader(bufferedReader);
-
-        int activeThreadsAtStart = Thread.activeCount();
-        gameMasterConnector.setup();
-
-        assertThat(Thread.activeCount()).isEqualTo(activeThreadsAtStart + 1);
-    }
-
-    @Test
-    public void shouldThrowExceptionOnGameDeniedStatus() throws IOException {
-        String message = new ObjectMapper().writeValueAsString(
-                new GameSetupStatusDTO(Action.setup, GameSetupStatus.DENIED));
-
-        gameMasterConnector.setWriter(mock(PrintWriter.class));
-        BufferedReader bufferedReader = mock(BufferedReader.class);
-        doReturn(message).when(bufferedReader).readLine();
-        gameMasterConnector.setReader(bufferedReader);
-
-        Assertions.assertThrows(GameMasterSetupException.class, () -> gameMasterConnector.setup());
-    }
 }

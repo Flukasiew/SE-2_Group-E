@@ -13,7 +13,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.common.dto.GameMessageEndDTO;
 import com.pw.common.model.Action;
@@ -52,6 +51,7 @@ public class CommunicationServer {
 	private Map<String, PrintWriter> playerWriters = new ConcurrentHashMap<>();
 
 	private Boolean stopServer = false;
+	private Boolean abruptShutdown = false;
 
 	public CommunicationServer(Config config) {
 		this.portNumber = config.getPortNumber();
@@ -69,6 +69,7 @@ public class CommunicationServer {
 			relayMessages();
 		} catch (Exception e) {
 			LOGGER.error("Abruptly stopping server...", e);
+			abruptShutdown = true;
 			sendAbruptShutdownMessage();
 		}
 
@@ -77,11 +78,10 @@ public class CommunicationServer {
 	}
 
 	private void setupGameMaster(ServerSocket serverSocket)
-			throws IOException, GameMasterSetupException, InterruptedException {
+			throws IOException, GameMasterSetupException {
 		gameMasterConnector = factory.createGameMasterConnector(serverSocket, ioHandler, messagesFromGameMaster,
 				config);
 		gameMasterConnector.connect();
-		gameMasterConnector.setup();
 		gameMasterWriter = gameMasterConnector.getWriter();
 
 		LOGGER.info("Game master setup completed");
@@ -228,7 +228,8 @@ public class CommunicationServer {
 				message, config.getRetriesLimit()));
 		try {
 			sendMessageToGameMasterWithRetries(message, config.getRetriesLimit());
-		} catch (GameMasterConnectionException ignored) {}
+		} catch (GameMasterConnectionException ignored) {
+		}
 		LOGGER.info("Abrupt shutdown messages sent");
 	}
 

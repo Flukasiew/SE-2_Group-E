@@ -39,10 +39,6 @@ public class ServerIntegrationTest {
                 SimpleClient client = new SimpleClient();
                 client.startConnection(host, port);
 
-                assertThat(client.receiveMessage()).isEqualTo(MAPPER.writeValueAsString(new GameSetupDTO(Action.setup)));
-
-                client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
-
                 client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
                 client.stopConnection();
             } catch (IOException e) {
@@ -62,8 +58,6 @@ public class ServerIntegrationTest {
             try {
                 SimpleClient client = new SimpleClient();
                 client.startConnection(host, port);
-                client.receiveMessage();
-                client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
 
                 assertThat(MAPPER.readValue(client.receiveMessage(), PlayerConnectMessageDTO.class))
                         .isNotNull().extracting(PlayerConnectMessageDTO::getPlayerGuid).isIn(playerGuidA, playerGuidB);
@@ -136,9 +130,6 @@ public class ServerIntegrationTest {
                 SimpleClient client = new SimpleClient();
                 client.startConnection(host, port);
                 client.receiveMessage();
-                client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
-                client.receiveMessage();
-
                 assertThat(client.receiveMessage()).isEqualTo(messageFromPlayer);
                 client.sendMessage(messageFromGameMaster);
 
@@ -154,16 +145,12 @@ public class ServerIntegrationTest {
         Thread player = new Thread(() -> {
             try {
                 SimpleClient client = new SimpleClient();
-
-                Thread.sleep(100);
-
                 client.startConnection(host, port);
                 client.sendMessage(MAPPER.writeValueAsString(new PlayerConnectMessageDTO(Action.connect, port, "a")));
-
                 client.sendMessage(messageFromPlayer);
-
                 assertThat(client.receiveMessage()).isEqualTo(messageFromGameMaster);
                 client.stopConnection();
+                System.out.println("p done");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -182,9 +169,6 @@ public class ServerIntegrationTest {
             try {
                 SimpleClient client = new SimpleClient();
                 client.startConnection(host, port);
-                client.receiveMessage();
-                client.sendMessage(MAPPER.writeValueAsString(new GameSetupStatusDTO(Action.setup, GameSetupStatus.OK)));
-
                 client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -219,6 +203,6 @@ public class ServerIntegrationTest {
 
         Thread.sleep(500);
 
-        assertThat(communicationServer.getStopServer()).isTrue();
+        assertThat(communicationServer.getAbruptShutdown()).isTrue();
     }
 }
