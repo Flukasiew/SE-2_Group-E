@@ -1,5 +1,6 @@
 package com.pw.common.model;
 import lombok.Data;
+import org.json.simple.JSONObject;
 
 @Data
 public class Field {
@@ -15,6 +16,14 @@ public class Field {
 
     public Field() {
 
+    }
+    public JSONObject getJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("x", position.x);
+        jsonObject.put("y", position.y);
+        jsonObject.put("cell", cell.getJson());
+
+        return jsonObject;
     }
 
     public Field(Position position, Cell cell){

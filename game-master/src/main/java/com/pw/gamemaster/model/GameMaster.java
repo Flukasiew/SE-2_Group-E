@@ -145,24 +145,25 @@ public class GameMaster {
         try {
             sleep(1000);
             // wait for setup
-            LOGGER.info("Waiting for setup");
-            timer = System.currentTimeMillis();
-            while (board == null && (timeE = System.currentTimeMillis() - timer < this.configuration.startupTimeLimit)) {
-                msg = simpleClient.receiveMessage();
-                if (msg != null && !msg.isEmpty()) {
-                    LOGGER.info("Message received", msg);
-                    JSONObject jsonObject = messageHandler(msg);
-                    simpleClient.sendMessage(jsonObject.toJSONString());
-                    LOGGER.info("Message returned", jsonObject.toJSONString());
-                    //startTime = System.currentTimeMillis();
-                }
-            }
-            LOGGER.info("Setup loop done");
-            if (!timeE) {
-                throw new TimeLimitExceededException("Game message time limit exceeded");
-            } else if (board == null) {
-                throw new SetupFailedException("Board is null");
-            }
+//            LOGGER.info("Waiting for setup");
+//            timer = System.currentTimeMillis();
+//            while (board == null && (timeE = System.currentTimeMillis() - timer < this.configuration.startupTimeLimit)) {
+//                msg = simpleClient.receiveMessage();
+//                if (msg != null && !msg.isEmpty()) {
+//                    LOGGER.info("Message received", msg);
+//                    JSONObject jsonObject = messageHandler(msg);
+//                    simpleClient.sendMessage(jsonObject.toJSONString());
+//                    LOGGER.info("Message returned", jsonObject.toJSONString());
+//                    //startTime = System.currentTimeMillis();
+//                }
+//            }
+//            LOGGER.info("Setup loop done");
+//            if (!timeE) {
+//                throw new TimeLimitExceededException("Game message time limit exceeded");
+//            } else if (board == null) {
+//                throw new SetupFailedException("Board is null");
+//            }
+            this.setupGame();
             // wait for players
             LOGGER.info("Waiting for players");
             timer = System.currentTimeMillis();
@@ -502,13 +503,17 @@ public class GameMaster {
                 return msg;
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
-                ObjectMapper mapper = new ObjectMapper();
+                //ObjectMapper mapper = new ObjectMapper();
+                JSONArray jsonArray = new JSONArray();
                 if (fieldList.size() == 0) {
                     msg.put("status", "DENIED");
                 } else {
                     msg.put("status", "OK");
                 }
-                msg.put("fields", mapper.writeValueAsString(fieldList));
+                for (Field field: fieldList) {
+                    jsonArray.add(field.getJson());
+                }
+                msg.put("fields", jsonArray);
                 return msg;
 
             default:

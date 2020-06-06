@@ -16,19 +16,14 @@ import javax.management.RuntimeErrorException;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.UUID;
+import java.util.*;
 
 import javax.net.ssl.SSLEngineResult.Status;
-
-import java.util.Scanner;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -575,79 +570,87 @@ public class Player {
     }
 
     private void discover() throws IOException, ParseException {
-	    {
-	    	LOGGER.info("Discovering");
-	        int x = position.x;
-	        int y = position.y;
-	        
-	        JSONObject message = new JSONObject();
-	        //JSONObject position = new JSONObject();
-	        message.put("action", "discover");
-	        message.put("playerGuid",playerGuid.toString());
-	        client.sendMessage(message.toJSONString());
-	        
-	        JSONParser parser = new JSONParser();
-	        String read = client.receiveMessage();
-	        while(read==null)
-	        {
-	        	read = client.receiveMessage();
-	        }
-	        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-	        MAPPER.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-	        List<Field> fields = Arrays.asList(MAPPER.readValue(read, Field[].class));
-	        //String stat = MAPPER.readValue(read, String.class);
-	        JsonNode jsonNode = MAPPER.readTree(read);
-	        //JsonNode jsonNode = MAPPER.readValue(read, JsonNode.class);
-	        JsonNode statnode = jsonNode.get("status");
-	        JsonNode actionnode = jsonNode.get("action");
-	        String action = actionnode.asText();
-	        if(action.equals("end"))
-	        {
-	        	lastmsg = actionnode.asText();
-	        	on = false;
-	        	JsonNode result = jsonNode.get("result");
-	        	if(team.getColor()==TeamColor.BLUE&&result.asText().equals("BLUE"))
-            	{
-            		LOGGER.info("We won!");
-            	}
-	        	else if(team.getColor()==TeamColor.RED&&result.asText().equals("RED"))
-	        	{
-	        		LOGGER.info("We won!");
-	        	}
-            	else
-            		LOGGER.info("We lost :(");
-	        	return;
-	        }
-	        String stat = statnode.asText();
-	        JsonNode fieldnode = jsonNode.get("fields");
-	        String field = MAPPER.convertValue(fieldnode, String.class);
-	        fields = Arrays.asList(MAPPER.readValue(field, Field[].class));
-	        //JsonNode field = fieldnode.get("position");
-	        //List<Field> fields = MAPPER.readValue(read, new TypeReference<List<Field>>() {});
-	        //JSONObject response = (JSONObject)parser.parse(client.receiveMessage());
-	        //String stat = (String)response.get("status");
-	        if(stat.equals("OK"))
-	        {
-	        	posx.add(position.x);
-	        	posy.add(position.y);
-	        	//List<Field> fields = new ArrayList<>();
-	        	//ObjectMapper mapper = new ObjectMapper();
-	        	//fields = (List<Field>)response.get("fields");
-	            for(Field f : fields)
-	            {
-	            	if(f.position.y>=board.goalAreaHeight&&f.position.y<board.goalAreaHeight+board.taskAreaHeight)
-	            		board.updateField(f);
-	            }
-	            LOGGER.info("Discovered");
-	        }
-	        else
-	        {
-	        	LOGGER.info("Discovering failed");
-	        }
-	        lastAction = ActionType.DISCOVER;
-	    }
-    }
+        {
+            LOGGER.info("Discovering");
+            int x = position.x;
+            int y = position.y;
 
+            JSONObject message = new JSONObject();
+            JSONObject positionJSONObject = new JSONObject();
+            positionJSONObject.put("x", position.x);
+            positionJSONObject.put("y", position.y);
+            message.put("position",positionJSONObject);
+
+            message.put("action", "discover");
+            message.put("playerGuid",playerGuid.toString());
+            client.sendMessage(message.toJSONString());
+
+            JSONParser parser = new JSONParser();
+            String msg = client.receiveMessage();
+            while(msg == null)
+            {
+                msg = client.receiveMessage();
+            }
+
+            JSONObject response = (JSONObject)parser.parse(msg);
+            String action = (String)response.get("action");
+            if(action.equals("end"))
+            {
+                lastmsg = action;
+                on = false;
+                if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+                {
+                    LOGGER.info("We won!");
+                }
+                else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+                {
+                    LOGGER.info("We won!");
+                }
+                else
+                    LOGGER.info("We lost :(");
+                return;
+            }
+            JSONObject newPosition = (JSONObject)response.get("position");
+            position = new Position(((Long)newPosition.get("x")).intValue(), ((Long)newPosition.get("y")).intValue());
+
+            JSONArray fields = (JSONArray)response.get("fields");
+
+            List<Field> fieldsList = new ArrayList<Field>();
+            Cell tmpCell;
+            Iterator iterator = fields.iterator();
+            while (iterator.hasNext()){
+                tmpCell = new Cell();
+                JSONObject jsonObject = (JSONObject)iterator.next();
+                JSONObject jsonCell = (JSONObject)jsonObject.get("cell");
+                if (jsonCell.get("playerGuid") != null) {
+                    tmpCell.setPlayerGuids(UUID.fromString((String)jsonCell.get("playerGuid")));
+                }
+                tmpCell.setDistance(((Long)jsonCell.get("distance")).intValue());
+                tmpCell.setCellState(CellState.valueOf((String)jsonCell.get("cellState")));
+                fieldsList.add(new Field(new Position(((Long)jsonObject.get("x")).intValue(), ((Long)jsonObject.get("y")).intValue()), tmpCell));
+            }
+
+
+
+            String stat = (String)response.get("status");
+            if(stat.equals("OK"))
+            {
+                posx.add(position.x);
+                posy.add(position.y);
+                for(Field f : fieldsList)
+                {
+                    if(f.position.y>=board.goalAreaHeight&&f.position.y<board.goalAreaHeight+board.taskAreaHeight)
+                        board.updateField(f);
+                }
+                LOGGER.info("Discovered");
+            }
+            else
+            {
+                LOGGER.info("Discovering failed");
+            }
+            lastAction = ActionType.DISCOVER;
+        }
+    }
     private void move(Position.Direction direction) throws ParseException, IOException{
 	    {
 	    	LOGGER.info("Moving");
