@@ -45,84 +45,84 @@ class GameMasterBoardTest {
 
         //Within common space
         player_blue.setPosition(new Position(5,5));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.DOWN);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Down);
         assertEquals(5,ret.getX());
         assertEquals(6,ret.getY());
 
         player_blue.setPosition(new Position(5,5));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.UP);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Up);
         assertEquals(5,ret.getX());
         assertEquals(4,ret.getY());
 
         player_blue.setPosition(new Position(5,5));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.LEFT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Left);
         assertEquals(4,ret.getX());
         assertEquals(5,ret.getY());
 
         player_blue.setPosition(new Position(5,5));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Right);
         assertEquals(6,ret.getX());
         assertEquals(5,ret.getY());
 
         player_red.setPosition(new Position(8,8));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.DOWN);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Down);
         assertEquals(8,ret.getX());
         assertEquals(9,ret.getY());
 
         player_red.setPosition(new Position(8,8));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.UP);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Up);
         assertEquals(8,ret.getX());
         assertEquals(7,ret.getY());
 
         player_red.setPosition(new Position(8,8));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.LEFT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Left);
         assertEquals(7,ret.getX());
         assertEquals(8,ret.getY());
 
         player_red.setPosition(new Position(8,8));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Right);
         assertEquals(9,ret.getX());
         assertEquals(8,ret.getY());
 
         //Blue within its Goal Area
         player_blue.setPosition(new Position(2,2));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.DOWN);;
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Down);;
         assertEquals(2,ret.getX());
         assertEquals(3,ret.getY());
 
         player_blue.setPosition(new Position(2,2));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.UP);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Up);
         assertEquals(2,ret.getX());
         assertEquals(1,ret.getY());
 
         player_blue.setPosition(new Position(2,2));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.LEFT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Left);
         assertEquals(1,ret.getX());
         assertEquals(2,ret.getY());
 
         player_blue.setPosition(new Position(2,2));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Right);
         assertEquals(3,ret.getX());
         assertEquals(2,ret.getY());
 
         //Red within its goal area
         player_red.setPosition(new Position(12,22));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.DOWN);;
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Down);;
         assertEquals(12,ret.getX());
         assertEquals(23,ret.getY());
 
         player_red.setPosition(new Position(12,22));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.UP);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Up);
         assertEquals(12,ret.getX());
         assertEquals(21,ret.getY());
 
         player_red.setPosition(new Position(12,22));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.LEFT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Left);
         assertEquals(11,ret.getX());
         assertEquals(22,ret.getY());
 
         player_red.setPosition(new Position(12,22));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Right);
         assertEquals(13,ret.getX());
         assertEquals(22,ret.getY());
 
@@ -142,36 +142,36 @@ class GameMasterBoardTest {
 
 
         player_blue.setPosition(new Position(11,19));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.DOWN);;
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Down);;
         assertNull(ret);
 
         player_blue.setPosition(new Position(1,0));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.UP);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Up);
         assertNull(ret);
 
         player_blue.setPosition(new Position(0,5));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.LEFT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Left);
         assertNull(ret);
 
         player_blue.setPosition(new Position(15,6));
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Right);
         assertNull(ret);
 
 
         player_red.setPosition(new Position(15,23));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.DOWN);;
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Down);;
         assertNull(ret);
 
         player_red.setPosition(new Position(4,4));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.UP);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Up);
         assertNull(ret);
 
         player_red.setPosition(new Position(0,5));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.LEFT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Left);
         assertNull(ret);
 
         player_red.setPosition(new Position(15,7));
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Right);
         assertNull(ret);
     }
 
@@ -191,12 +191,12 @@ class GameMasterBoardTest {
 
 
         gameMasterBoard.cellsGrid[8][8].setPlayerGuids(UUID.randomUUID());
-        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_blue, Position.Direction.Right);
         assertEquals(8,ret.getX());
         assertEquals(8,ret.getY());
 
         gameMasterBoard.cellsGrid[8][8].setPlayerGuids(UUID.randomUUID());
-        ret = gameMasterBoard.playerMove(player_red, Position.Direction.RIGHT);
+        ret = gameMasterBoard.playerMove(player_red, Position.Direction.Right);
         assertEquals(8,ret.getX());
         assertEquals(8,ret.getY());
     }

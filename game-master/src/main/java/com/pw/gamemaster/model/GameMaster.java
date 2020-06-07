@@ -428,17 +428,17 @@ public class GameMaster {
                 String directionString = (String)msg.get("direction");
                 Position.Direction direction;
                 switch (directionString) {
-                    case "UP":
-                        direction = Position.Direction.UP;
+                    case "Up":
+                        direction = Position.Direction.Up;
                         break;
-                    case "DOWN":
-                        direction = Position.Direction.DOWN;
+                    case "Down":
+                        direction = Position.Direction.Down;
                         break;
-                    case "LEFT":
-                        direction = Position.Direction.LEFT;
+                    case "Left":
+                        direction = Position.Direction.Left;
                         break;
-                    case "RIGHT":
-                        direction = Position.Direction.RIGHT;
+                    case "Right":
+                        direction = Position.Direction.Right;
                         break;
                     default:
                         throw new InvalidMoveException("Unexpected value: " + directionString); // implement new exception later on

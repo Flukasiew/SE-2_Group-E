@@ -23,24 +23,24 @@ public class Position {
     public void setY(int y){ this.y  = y; }
 
     public enum Direction {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
+        Up,
+        Down,
+        Left,
+        Right
     }
 
     public void changePosition(Direction direction) {
         switch(direction) {
-            case UP:
+            case Up:
                 y -= 1;
                 break;
-            case DOWN:
+            case Down:
                 y += 1;
                 break;
-            case LEFT:
+            case Left:
                 x-=1;
                 break;
-            case RIGHT:
+            case Right:
                 x+=1;
                 break;
         }
