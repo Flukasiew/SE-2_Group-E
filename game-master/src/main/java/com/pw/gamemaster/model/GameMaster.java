@@ -78,6 +78,14 @@ public class GameMaster {
     public void startGame() throws IOException {
         this.placePlayers();
         PlayerDTO playerDTO;
+        JSONArray jsonArrayBlueGuids = new JSONArray();
+        JSONArray jsonArrayRedGuids = new JSONArray();
+        for (UUID uuid : teamBlueGuids) {
+            jsonArrayBlueGuids.add(uuid.toString());
+        }
+        for (UUID uuid : teamRedGuids) {
+            jsonArrayRedGuids.add(uuid.toString());
+        }
         for (UUID player : connectedPlayers) {
             JSONObject jsonObject = new JSONObject();
             JSONObject positionJsonObject = new JSONObject();
@@ -88,11 +96,10 @@ public class GameMaster {
             jsonObject.put("team", playerDTO.playerTeamColor.toString());
             jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
             jsonObject.put("teamSize", teamBlueGuids.size());
-            if (playerDTO.getPlayerTeamColor() == TeamColor.Blue){
-                jsonObject.put("teamGuids", teamBlueGuids.toString());
-            }
-            else{
-                jsonObject.put("teamGuids", teamRedGuids.toString());
+            if (playerDTO.getPlayerTeamColor() == TeamColor.Blue) {
+                jsonObject.put("teamGuids", jsonArrayBlueGuids);
+            } else {
+                jsonObject.put("teamGuids", jsonArrayRedGuids);
             }
             positionJsonObject.put("x", playerDTO.playerPosition.x);
             positionJsonObject.put("y", playerDTO.playerPosition.y);
@@ -516,7 +523,7 @@ public class GameMaster {
                 } else {
                     msg.put("status", "OK");
                 }
-                for (Field field: fieldList) {
+                for (Field field : fieldList) {
                     jsonArray.add(field.getJson());
                 }
                 msg.put("fields", jsonArray);
