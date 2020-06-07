@@ -448,7 +448,7 @@ public class GameMaster {
                     status = "OK";
                     positionJSON.put("x", newPosition.x);
                     positionJSON.put("y", newPosition.y);
-                    msg.put("position", positionJSON.toJSONString());
+                    msg.put("position", positionJSON);
                 }
                 msg.put("status", status);
                 return msg;
