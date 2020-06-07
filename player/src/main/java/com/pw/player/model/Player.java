@@ -629,7 +629,8 @@ public class Player {
                     }
                     tmpCell.setDistance(((Long)jsonCell.get("distance")).intValue());
                     tmpCell.setCellState(CellState.valueOf((String)jsonCell.get("cellState")));
-                    fieldsList.add(new Field(new Position(((Long)jsonObject.get("x")).intValue(), ((Long)jsonObject.get("y")).intValue()), tmpCell));
+                    JSONObject jsonField = (JSONObject)jsonObject.get("position");
+                    fieldsList.add(new Field(new Position(((Long)jsonField.get("x")).intValue(), ((Long)jsonField.get("y")).intValue()), tmpCell));
                 }
 
                 String stat = (String)response.get("status");

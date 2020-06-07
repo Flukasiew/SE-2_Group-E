@@ -88,12 +88,6 @@ public class GameMaster {
             jsonObject.put("team", playerDTO.playerTeamColor.toString());
             jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
             jsonObject.put("teamSize", teamBlueGuids.size());
-            if (playerDTO.getPlayerTeamColor() == TeamColor.Blue){
-                jsonObject.put("teamGuids", teamBlueGuids.toString());
-            }
-            else{
-                jsonObject.put("teamGuids", teamRedGuids.toString());
-            }
             positionJsonObject.put("x", playerDTO.playerPosition.x);
             positionJsonObject.put("y", playerDTO.playerPosition.y);
             jsonObject.put("position", positionJsonObject);
@@ -517,7 +511,14 @@ public class GameMaster {
                     msg.put("status", "OK");
                 }
                 for (Field field: fieldList) {
-                    jsonArray.add(field.getJson());
+                    JSONObject fieldJSONObject = new JSONObject();
+                    JSONObject positionJSONObject = new JSONObject();
+                    JSONObject cellJSONObject = new JSONObject();
+                    positionJSONObject.put("x", field.position.x);
+                    positionJSONObject.put("y", field.position.y);
+                    fieldJSONObject.put("cell", field.cell.getJson());
+                    fieldJSONObject.put("position",positionJSONObject);
+                    jsonArray.add(fieldJSONObject);
                 }
                 msg.put("fields", jsonArray);
                 return msg;
