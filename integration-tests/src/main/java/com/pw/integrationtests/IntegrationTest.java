@@ -1,9 +1,12 @@
 package com.pw.integrationtests;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
@@ -22,35 +25,36 @@ public class IntegrationTest {
 	private final Runnable server = () -> ServerApp.main(null);
 	private final Runnable gameMaster = () -> {
 		try {
-			String[] argsGM = new String[] {"0.0.0.0", "1300"};
+			String[] argsGM = new String[] { "0.0.0.0", "1300" };
 			GameMasterApp.main(argsGM);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	};
 	private Runnable player = () -> {
-		String argsPlayer[] = new String[] {"0.0.0.0", "1300"};
+		String argsPlayer[] = new String[] { "0.0.0.0", "1300" };
 		PlayerApp.main(argsPlayer);
 	};
 
-
 	@SneakyThrows
 	@Test
-	public void shouldCompleteGame() throws InterruptedException {
+	public void shouldCompleteGame() {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
-		executor.submit(server);
-		executor.submit(gameMaster);
-		Thread.sleep(1000);
+		List<Future<?>> futures = newArrayList(
+				executor.submit(server),
+				executor.submit(gameMaster));
+		Thread.sleep(2000);
 		for (int i = 0; i < playerCount; i++) {
-			executor.submit(player);
+			futures.add(executor.submit(player));
 		}
 
-		assertThat(executor.awaitTermination(30, TimeUnit.SECONDS)).isTrue();
+		Thread.sleep(30000);
+		futures.forEach(future -> assertThat(future.isDone()).isTrue());
 	}
 
 	@SneakyThrows
 	@Test
-	public void shouldEndGameWhenGameMasterDisconnects() throws InterruptedException {
+	public void shouldEndGameWhenGameMasterDisconnects() {
 		ExecutorService executor = Executors.newFixedThreadPool(totalThreadCount);
 		executor.submit(server);
 		var gameMasterFuture = executor.submit(gameMaster);
@@ -65,7 +69,7 @@ public class IntegrationTest {
 	}
 
 	private static int totalThreadCount(int playerCount) {
-		int serverThreadCount = 4 +  playerCount;
+		int serverThreadCount = 4 + playerCount;
 		int gameMasterThreadCount = 1;
 		int playersThreadCount = playerCount;
 		return serverThreadCount + gameMasterThreadCount + playersThreadCount;
