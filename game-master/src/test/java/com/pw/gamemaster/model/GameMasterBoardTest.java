@@ -214,25 +214,25 @@ class GameMasterBoardTest {
         player_red.setPlayerGuid(UUID.randomUUID());
         player_red.setPlayerTeamColor(TeamColor.Red);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.PIECE;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Piece;
         ret = gameMasterBoard.takePiece(new Position(5,5));
-        assertEquals(ret,Cell.CellState.PIECE );
+        assertEquals(ret,Cell.CellState.Piece );
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.EMPTY;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Empty;
         ret = gameMasterBoard.takePiece(new Position(5,5));
-        assertEquals(ret,Cell.CellState.EMPTY);
+        assertEquals(ret,Cell.CellState.Empty);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.UNKNOWN;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Unknown;
         ret = gameMasterBoard.takePiece(new Position(5,5));
-        assertEquals(ret,Cell.CellState.UNKNOWN);
+        assertEquals(ret,Cell.CellState.Unknown);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.GOAL;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Goal;
         ret = gameMasterBoard.takePiece(new Position(5,5));
-        assertEquals(ret,Cell.CellState.GOAL);
+        assertEquals(ret,Cell.CellState.Goal);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.VALID;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Valid;
         ret = gameMasterBoard.takePiece(new Position(5,5));
-        assertEquals(ret,Cell.CellState.VALID);
+        assertEquals(ret,Cell.CellState.Valid);
 
 
     }
@@ -287,29 +287,29 @@ class GameMasterBoardTest {
         player_red.setPlayerTeamColor(TeamColor.Red);
 
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.PIECE;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Piece;
         gameMasterBoard.setGoal(new Position(5,5));
-        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.GOAL);
+        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.Goal);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.EMPTY;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Empty;
         gameMasterBoard.setGoal(new Position(5,5));
-        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.GOAL);
+        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.Goal);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.UNKNOWN;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Unknown;
         gameMasterBoard.setGoal(new Position(5,5));
-        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.GOAL);
+        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.Goal);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.GOAL;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Goal;
         gameMasterBoard.setGoal(new Position(5,5));
-        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.GOAL);
+        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.Goal);
 
-        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.VALID;
+        gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.Valid;
         gameMasterBoard.setGoal(new Position(5,5));
-        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.GOAL);
+        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.Goal);
 
 
         gameMasterBoard.setGoal(new Position(1,1));
-        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.GOAL);
+        assertEquals(gameMasterBoard.cellsGrid[5][5].cellState,Cell.CellState.Goal);
     }
 
     @Test
@@ -419,15 +419,15 @@ class GameMasterBoardTest {
         Position new_piece_position;
         new_piece_position = new Position(5,5);
         gameMasterBoard.piecesPosition.add(new_piece_position);
-        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.Piece);
 
         new_piece_position = new Position(5,6);
         gameMasterBoard.piecesPosition.add(new_piece_position);
-        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.Piece);
 
         new_piece_position = new Position(9,6);
         gameMasterBoard.piecesPosition.add(new_piece_position);
-        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+        gameMasterBoard.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.Piece);
 
         ret = gameMasterBoard.discover(new Position(6,5));
         int[] outs = {1,0,0,2,1,1,3,2,2};

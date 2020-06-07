@@ -168,7 +168,7 @@ public class Player {
                     	{
                     		for(int j=0; j<board.boardWidth; j++)
                     		{
-                    			board.cellsGrid[j][i].setCellState(CellState.UNKNOWN);
+                    			board.cellsGrid[j][i].setCellState(CellState.Unknown);
                     		}
                     	}
                     	//board = (Board)object.get("board");
@@ -221,8 +221,8 @@ public class Player {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        //else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
-        else if(team.color==TeamColor.Blue&&position.y<board.goalAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
+        //else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.Goal && piece==true)
+        else if(team.color==TeamColor.Blue&&position.y<board.goalAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.Unknown&&piece==true)
             try{
             	placePiece();
             	lastdisc = !lastdisc;
@@ -230,7 +230,7 @@ public class Player {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(team.color==TeamColor.Red&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
+        else if(team.color==TeamColor.Red&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.Unknown&&piece==true)
             try{
             	placePiece();
             	lastdisc = !lastdisc;
@@ -238,7 +238,7 @@ public class Player {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.PIECE&&piece==false)
+        else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.Piece&&piece==false)
             try {
             	takePiece();
             	lastdisc = !lastdisc;
@@ -292,54 +292,54 @@ public class Player {
         int x = position.x;
         int y = position.y;
 
-        if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
+        if(board.cellsGrid[x][y].getCellState() == Cell.CellState.Unknown)
             ++counter;
         if(x>0)
         {
         	total++;
-	        if(board.cellsGrid[x-1][y].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x-1][y].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(x>0&&y<board.boardHeight-1)
         {
         	total++;
-	        if(board.cellsGrid[x-1][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x-1][y+1].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(x>0&&y>0)
         {
         	total++;
-	        if(board.cellsGrid[x-1][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x-1][y-1].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(x<board.boardWidth-1)
         {
         	total++;
-	        if(board.cellsGrid[x+1][y].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x+1][y].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(x<board.boardWidth-1&&y>0)
         {
         	total++;
-	        if(board.cellsGrid[x+1][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x+1][y-1].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(x<board.boardWidth-1&&y<board.boardHeight-1)
         {
         	total++;
-	        if(board.cellsGrid[x+1][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x+1][y+1].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(y<board.boardHeight-1)
         {
         	total++;
-	        if(board.cellsGrid[x][y+1].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x][y+1].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
         if(y>0)
         {
         	total++;
-	        if(board.cellsGrid[x][y-1].getCellState() == Cell.CellState.UNKNOWN)
+	        if(board.cellsGrid[x][y-1].getCellState() == Cell.CellState.Unknown)
 	            ++counter;
         }
 
@@ -481,7 +481,7 @@ public class Player {
 
         for(x = 0; x < board.boardWidth; x++)
             for(y = board.goalAreaHeight; y < board.goalAreaHeight + board.taskAreaHeight; y++)
-                if(board.cellsGrid[x][y].cellState == Cell.CellState.PIECE)
+                if(board.cellsGrid[x][y].cellState == Cell.CellState.Piece)
                 {
                     pieceCell[0] = x;
                     pieceCell[1] = y;
@@ -501,9 +501,9 @@ public class Player {
         	for(y = 0; y < board.goalAreaHeight; y++)
         	{
         		for(x = 0; x < board.boardWidth; x++)
-                    //if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+                    //if(board.cellsGrid[x][y].cellState == Cell.CellState.Goal)
                 	//if(counter<=y*board.boardWidth+x)
-        			if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
+        			if(board.cellsGrid[x][y].getCellState() == Cell.CellState.Unknown)
                     {
                     	goalCell[0] = x;
                     	goalCell[1] = y;
@@ -517,9 +517,9 @@ public class Player {
         	{
 	        	for(x=0; x<board.boardWidth; x++)
 	        	{
-        			//if(board.cellsGrid[x][y].cellState == Cell.CellState.GOAL)
+        			//if(board.cellsGrid[x][y].cellState == Cell.CellState.Goal)
         			//if(counter<=(y-(board.goalAreaHeight+board.taskAreaHeight))+x)
-	        		if(board.cellsGrid[x][y].getCellState() == Cell.CellState.UNKNOWN)
+	        		if(board.cellsGrid[x][y].getCellState() == Cell.CellState.Unknown)
                     {
                     	goalCell[0] = x;
                     	goalCell[1] = y;
@@ -750,13 +750,13 @@ public class Player {
 	        String stat = (String)response.get("status");
 	        if(stat.equals("OK"))
 	        {
-	            board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
+	            board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.Empty);
 	            piece = true;
 	            LOGGER.info("Picked up piece");
 	        }
 	        else
 	        {
-	        	board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
+	        	board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.Empty);
 	        	LOGGER.info("Failed to pick up piece");
 	            return;
 	        }
@@ -859,7 +859,7 @@ public class Player {
 	            if(res=="Correct")
 	            {
 	                lastAction = ActionType.PLACE;
-	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.GOAL);
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.Goal);
 	                piece = false;
 	                tested = false;
 	                LOGGER.info("Goal completed");
@@ -867,7 +867,7 @@ public class Player {
 	            else
 	            {
 	                lastAction = ActionType.PLACE;
-	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.EMPTY);
+	                board.cellsGrid[position.x][position.y].setCellState(Cell.CellState.Empty);
 	                piece = false;
 	                tested = false;
 	                LOGGER.info("Piece wasted");

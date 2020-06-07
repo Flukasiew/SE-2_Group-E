@@ -76,7 +76,7 @@ public class PlayerTest {
     {
         Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(6,4), client);
         player.board = new Board(10, 4, 8);
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.PIECE);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Piece);
 
         JSONObject tester = new JSONObject();
         tester.put("action", ActionType.PICKUP.toString());
@@ -101,19 +101,19 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.EMPTY);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Empty);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.GOAL);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Goal);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.VALID);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Valid);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.UNKNOWN);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Unknown);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
     }
@@ -123,7 +123,7 @@ public class PlayerTest {
     {
         Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(2,2), client);
         player.board = new Board(10, 4, 8);
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.GOAL);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Goal);
 
         JSONObject tester = new JSONObject();
         tester.put("action", ActionType.PLACE.toString());

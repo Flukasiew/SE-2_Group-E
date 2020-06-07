@@ -14,16 +14,16 @@ public class Cell {
     public UUID playerGuids;
 
     public enum CellState {
-        EMPTY,
-        GOAL,
-        PIECE,
-        VALID,
-        UNKNOWN
+        Empty,
+        Goal,
+        Piece,
+        Valid,
+        Unknown
     }
 
     public Cell() {
         this.distance=-1;
-        this.cellState = CellState.EMPTY;
+        this.cellState = CellState.Empty;
     }
     public JSONObject getJson() {
         JSONObject jsonObject = new JSONObject();

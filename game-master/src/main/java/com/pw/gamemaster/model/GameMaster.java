@@ -456,7 +456,7 @@ public class GameMaster {
             case "pickup":
                 Position pos = playersDTO.get(uuid).playerPosition;
                 Cell.CellState res = board.takePiece(pos);
-                if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
+                if (res == Cell.CellState.Valid || res == Cell.CellState.Piece) {
                     status = "OK";
                     playerPieces.replace(uuid, true);
                     this.putNewPiece();
@@ -485,7 +485,7 @@ public class GameMaster {
             case "place":
                 Field xdd = this.board.getField(playersDTO.get(uuid).playerPosition);
                 Cell.CellState state2 = xdd.cell.cellState;
-                if (state2 == Cell.CellState.PIECE || !playerPieces.get(uuid)) {
+                if (state2 == Cell.CellState.Piece || !playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("placementResult", null);
                 } else {
