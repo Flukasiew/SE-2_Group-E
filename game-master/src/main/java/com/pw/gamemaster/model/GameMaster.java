@@ -145,24 +145,25 @@ public class GameMaster {
         try {
             sleep(1000);
             // wait for setup
-            LOGGER.info("Waiting for setup");
-            timer = System.currentTimeMillis();
-            while (board == null && (timeE = System.currentTimeMillis() - timer < this.configuration.startupTimeLimit)) {
-                msg = simpleClient.receiveMessage();
-                if (msg != null && !msg.isEmpty()) {
-                    LOGGER.info("Message received", msg);
-                    JSONObject jsonObject = messageHandler(msg);
-                    simpleClient.sendMessage(jsonObject.toJSONString());
-                    LOGGER.info("Message returned", jsonObject.toJSONString());
-                    //startTime = System.currentTimeMillis();
-                }
-            }
-            LOGGER.info("Setup loop done");
-            if (!timeE) {
-                throw new TimeLimitExceededException("Game message time limit exceeded");
-            } else if (board == null) {
-                throw new SetupFailedException("Board is null");
-            }
+//            LOGGER.info("Waiting for setup");
+//            timer = System.currentTimeMillis();
+//            while (board == null && (timeE = System.currentTimeMillis() - timer < this.configuration.startupTimeLimit)) {
+//                msg = simpleClient.receiveMessage();
+//                if (msg != null && !msg.isEmpty()) {
+//                    LOGGER.info("Message received", msg);
+//                    JSONObject jsonObject = messageHandler(msg);
+//                    simpleClient.sendMessage(jsonObject.toJSONString());
+//                    LOGGER.info("Message returned", jsonObject.toJSONString());
+//                    //startTime = System.currentTimeMillis();
+//                }
+//            }
+//            LOGGER.info("Setup loop done");
+//            if (!timeE) {
+//                throw new TimeLimitExceededException("Game message time limit exceeded");
+//            } else if (board == null) {
+//                throw new SetupFailedException("Board is null");
+//            }
+            this.setupGame();
             // wait for players
             LOGGER.info("Waiting for players");
             timer = System.currentTimeMillis();
@@ -184,7 +185,7 @@ public class GameMaster {
             // play actual game
             startGame();
             timer = System.currentTimeMillis();
-            while (!(redWin = board.checkWinCondition(TeamColor.RED)) && !(blueWin = board.checkWinCondition(TeamColor.BLUE)) && (timeE = System.currentTimeMillis() - timer < this.configuration.gameMsgTimeLimit)) {
+            while (!(redWin = board.checkWinCondition(TeamColor.Red)) && !(blueWin = board.checkWinCondition(TeamColor.Blue)) && (timeE = System.currentTimeMillis() - timer < this.configuration.gameMsgTimeLimit)) {
                 msg = simpleClient.receiveMessage();
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -199,10 +200,10 @@ public class GameMaster {
             }
             LOGGER.info("Play game loop done");
             if (blueWin) {
-                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.Blue);
                 LOGGER.info("Blue team has won");
             } else if (redWin) {
-                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.RED);
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.Red);
                 LOGGER.info("Red team has won");
             } else {
                 LOGGER.warn("No winner has been decided");
@@ -309,7 +310,7 @@ public class GameMaster {
                 }
                 for (int j = 0; j < this.configuration.boardTaskHeight + this.configuration.boardGoalHeight; j++) {
                     PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
-                    tmp.playerTeamColor = TeamColor.BLUE;
+                    tmp.playerTeamColor = TeamColor.Blue;
                     if (bluePlayersToPlace <= 0) {
                         break;
                     }
@@ -338,7 +339,7 @@ public class GameMaster {
                 }
                 for (int j = this.board.boardHeight - 1; j >= 0; j--) {
                     PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
-                    tmp.playerTeamColor = TeamColor.RED;
+                    tmp.playerTeamColor = TeamColor.Red;
                     if (redPlayersToPlace <= 0) {
                         break;
                     }
@@ -455,7 +456,7 @@ public class GameMaster {
             case "pickup":
                 Position pos = playersDTO.get(uuid).playerPosition;
                 Cell.CellState res = board.takePiece(pos);
-                if (res == Cell.CellState.VALID || res == Cell.CellState.PIECE) {
+                if (res == Cell.CellState.Valid || res == Cell.CellState.Piece) {
                     status = "OK";
                     playerPieces.replace(uuid, true);
                     this.putNewPiece();
@@ -484,7 +485,7 @@ public class GameMaster {
             case "place":
                 Field xdd = this.board.getField(playersDTO.get(uuid).playerPosition);
                 Cell.CellState state2 = xdd.cell.cellState;
-                if (state2 == Cell.CellState.PIECE || !playerPieces.get(uuid)) {
+                if (state2 == Cell.CellState.Piece || !playerPieces.get(uuid)) {
                     msg.put("status", "DENIED");
                     msg.put("placementResult", null);
                 } else {
@@ -502,13 +503,17 @@ public class GameMaster {
                 return msg;
             case "discover":
                 List<Field> fieldList = board.discover(playersDTO.get(uuid).playerPosition);
-                ObjectMapper mapper = new ObjectMapper();
+                //ObjectMapper mapper = new ObjectMapper();
+                JSONArray jsonArray = new JSONArray();
                 if (fieldList.size() == 0) {
                     msg.put("status", "DENIED");
                 } else {
                     msg.put("status", "OK");
                 }
-                msg.put("fields", mapper.writeValueAsString(fieldList));
+                for (Field field: fieldList) {
+                    jsonArray.add(field.getJson());
+                }
+                msg.put("fields", jsonArray);
                 return msg;
 
             default:

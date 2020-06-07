@@ -39,7 +39,7 @@ public class ServerIntegrationTest {
                 SimpleClient client = new SimpleClient();
                 client.startConnection(host, port);
 
-                client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
+                client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.Blue)));
                 client.stopConnection();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -64,7 +64,7 @@ public class ServerIntegrationTest {
                 assertThat(MAPPER.readValue(client.receiveMessage(), PlayerConnectMessageDTO.class)).isNotNull()
                         .isNotNull().extracting(PlayerConnectMessageDTO::getPlayerGuid).isIn(playerGuidA, playerGuidB);
 
-                client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
+                client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.Blue)));
                 client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -135,7 +135,7 @@ public class ServerIntegrationTest {
 
                 Thread.sleep(200);
 
-                client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.BLUE)));
+                client.sendMessage(MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.Blue)));
                 client.stopConnection();
             } catch (Exception e) {
                 e.printStackTrace();

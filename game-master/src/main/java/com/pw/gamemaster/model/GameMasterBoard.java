@@ -42,7 +42,7 @@ public class GameMasterBoard extends Board {
 //        }
         else
         {
-            if (playerDTO.playerTeamColor == TeamColor.BLUE)
+            if (playerDTO.playerTeamColor == TeamColor.Blue)
             {
                 if (playerDTO.playerPosition.getY() < this.boardHeight - this.goalAreaHeight)
                 {
@@ -78,8 +78,8 @@ public class GameMasterBoard extends Board {
     public Cell.CellState takePiece(Position position) {
         Cell.CellState init_state =  this.getField(position).cell.getCellState();
 
-        if(this.getField(position).cell.getCellState() == Cell.CellState.PIECE){
-            this.cellsGrid[position.getX()][position.getY()].setCellState(Cell.CellState.EMPTY);
+        if(this.getField(position).cell.getCellState() == Cell.CellState.Piece){
+            this.cellsGrid[position.getX()][position.getY()].setCellState(Cell.CellState.Empty);
             for (Position p : this.piecesPosition){
                 if(p.x == position.getX() && p.y == position.getY()) {
                     this.piecesPosition.remove(p);
@@ -119,7 +119,7 @@ public class GameMasterBoard extends Board {
             {
 
                 piecesPosition.add(new_piece_position);
-                this.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.PIECE);
+                this.cellsGrid[new_piece_position.getX()][new_piece_position.getY()].setCellState(Cell.CellState.Piece);
                 return new_piece_position;
             }
         }
@@ -128,15 +128,15 @@ public class GameMasterBoard extends Board {
     }
 
     public void setGoal(Position position) {
-        this.cellsGrid[position.getX()][position.getY()].cellState = Cell.CellState.GOAL;
+        this.cellsGrid[position.getX()][position.getY()].cellState = Cell.CellState.Goal;
     }
 
     public PlacementResult placePiece(PlayerDTO playerDTO) {
 
         Field current_field = this.getField(playerDTO.playerPosition);
         if(current_field == null) return PlacementResult.POINTLESS;
-        if (current_field.cell.getCellState() == Cell.CellState.GOAL){
-            current_field.cell.setCellState(Cell.CellState.EMPTY);
+        if (current_field.cell.getCellState() == Cell.CellState.Goal){
+            current_field.cell.setCellState(Cell.CellState.Empty);
             this.updateField(current_field);
             return PlacementResult.CORRECT;
         }
@@ -156,13 +156,13 @@ public class GameMasterBoard extends Board {
     }
 
     public boolean checkWinCondition(TeamColor teamColor) {
-        if(teamColor == TeamColor.BLUE) {
+        if(teamColor == TeamColor.Blue) {
             for(int i=0;i<this.boardWidth;i++)
             {
                 for(int j=0;j<this.goalAreaHeight;j++)
                 {
                     Position temp = new Position(i,j);
-                    if(this.getField(temp).cell.getCellState() == Cell.CellState.GOAL) {
+                    if(this.getField(temp).cell.getCellState() == Cell.CellState.Goal) {
                         int filled = 0;
                         for (Position piece : piecesPosition) {
                             if (i == piece.getX() && j == piece.getY()) {
@@ -184,7 +184,7 @@ public class GameMasterBoard extends Board {
                 for(int j=this.boardHeight-this.goalAreaHeight;j<this.boardHeight;j++)
                 {
                     Position temp = new Position(i,j);
-                    if(this.getField(temp).cell.getCellState() == Cell.CellState.GOAL) {
+                    if(this.getField(temp).cell.getCellState() == Cell.CellState.Goal) {
                         int filled = 0;
                         for (Position piece : piecesPosition) {
                             if (i == piece.getY() && j == piece.y) {
@@ -217,7 +217,7 @@ public class GameMasterBoard extends Board {
                         for(int b=this.goalAreaHeight; b<this.boardHeight-this.goalAreaHeight;b++)
                         {
                             //System.out.println(this.getField(new Position(a,b)).getCell().cellState);
-                            if(this.getField(new Position(a,b)).getCell().cellState == Cell.CellState.PIECE)
+                            if(this.getField(new Position(a,b)).getCell().cellState == Cell.CellState.Piece)
                             {
                                 Point temp = new Point(a,b);
                                 //System.out.println(manhattanDistanceTwoPoints(curr,temp));

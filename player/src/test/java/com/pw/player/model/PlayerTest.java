@@ -42,7 +42,7 @@ public class PlayerTest {
     @Test
     public void StartMessageTest() throws Exception
     {
-    	Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,4), client);
+    	Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(6,4), client);
     	JSONObject tester = new JSONObject();
     	JSONObject position = new JSONObject();
     	JSONObject board = new JSONObject();
@@ -53,7 +53,7 @@ public class PlayerTest {
     	board.put("goalAreaHeight", 4);
         tester.put("action", "start");
         tester.put("playerGuid", player.playerGuid.toString());
-        tester.put("team", "BLUE");
+        tester.put("team", "Blue");
         tester.put("teamRole", TeamRole.MEMBER.toString());
         tester.put("teamSize", (int)4);
         tester.put("position", position);
@@ -74,9 +74,9 @@ public class PlayerTest {
     @Test
     public void PickupPieceTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,4), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(6,4), client);
         player.board = new Board(10, 4, 8);
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.PIECE);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Piece);
 
         JSONObject tester = new JSONObject();
         tester.put("action", ActionType.PICKUP.toString());
@@ -92,7 +92,7 @@ public class PlayerTest {
     @Test
     public void PickupPieceTestEmpty() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(6,6), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(6,6), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -101,19 +101,19 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.EMPTY);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Empty);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.GOAL);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Goal);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.VALID);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Valid);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
 
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.UNKNOWN);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Unknown);
         player.testAction(ActionType.PICKUP, null);
         assertEquals(false, player.piece);
     }
@@ -121,9 +121,9 @@ public class PlayerTest {
     @Test
     public void PlacePieceTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(2,2), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(2,2), client);
         player.board = new Board(10, 4, 8);
-        player.board.cellsGrid[6][4].setCellState(Cell.CellState.GOAL);
+        player.board.cellsGrid[6][4].setCellState(Cell.CellState.Goal);
 
         JSONObject tester = new JSONObject();
         tester.put("action", ActionType.PLACE.toString());
@@ -139,7 +139,7 @@ public class PlayerTest {
     @Test
     public void MoveRightTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(4,6), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(4,6), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -155,7 +155,7 @@ public class PlayerTest {
     @Test
     public void FalseMoveRightTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(9,6), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(9,6), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -171,7 +171,7 @@ public class PlayerTest {
     @Test
     public void MoveLeftTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(4,6), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(4,6), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -187,7 +187,7 @@ public class PlayerTest {
     @Test
     public void FalseMoveLeftTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(0,6), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(0,6), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -203,7 +203,7 @@ public class PlayerTest {
     @Test
     public void MoveUpTest() throws Exception
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,6), client);
+        Player player = new Player(TeamColor.Red, TeamRole.MEMBER, new Position(3,6), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -219,7 +219,7 @@ public class PlayerTest {
     @Test
     public void FalseMoveUpTest() throws Exception
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,0), client);
+        Player player = new Player(TeamColor.Red, TeamRole.MEMBER, new Position(3,0), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -235,7 +235,7 @@ public class PlayerTest {
     @Test
     public void FalseMoveUpBlueTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,4), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(3,4), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -251,7 +251,7 @@ public class PlayerTest {
     @Test
     public void MovDownTest() throws Exception
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,13), client);
+        Player player = new Player(TeamColor.Red, TeamRole.MEMBER, new Position(3,13), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -267,7 +267,7 @@ public class PlayerTest {
     @Test
     public void FalseMoveDownTest() throws Exception
     {
-        Player player = new Player(TeamColor.BLUE, TeamRole.MEMBER, new Position(3,15), client);
+        Player player = new Player(TeamColor.Blue, TeamRole.MEMBER, new Position(3,15), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();
@@ -283,7 +283,7 @@ public class PlayerTest {
     @Test
     public void FalseMoveDownRedTest() throws Exception
     {
-        Player player = new Player(TeamColor.RED, TeamRole.MEMBER, new Position(3,11), client);
+        Player player = new Player(TeamColor.Red, TeamRole.MEMBER, new Position(3,11), client);
         player.board = new Board(10, 4, 8);
 
         JSONObject tester = new JSONObject();

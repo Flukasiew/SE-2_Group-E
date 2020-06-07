@@ -3,6 +3,7 @@ package com.pw.common.model;
 import lombok.Data;
 import lombok.Setter;
 import lombok.Getter;
+import org.json.simple.JSONObject;
 
 import java.util.UUID;
 
@@ -13,16 +14,28 @@ public class Cell {
     public UUID playerGuids;
 
     public enum CellState {
-        EMPTY,
-        GOAL,
-        PIECE,
-        VALID,
-        UNKNOWN
+        Empty,
+        Goal,
+        Piece,
+        Valid,
+        Unknown
     }
 
     public Cell() {
         this.distance=-1;
-        this.cellState = CellState.EMPTY;
+        this.cellState = CellState.Empty;
+    }
+    public JSONObject getJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("cellState", cellState.toString());
+        jsonObject.put("distance", distance);
+        if(playerGuids==null) {
+            jsonObject.put("playerGuid", null);
+        } else {
+            jsonObject.put("playerGuid", playerGuids.toString());
+        }
+
+        return jsonObject;
     }
 
     public Field getField(Position position ){
