@@ -523,10 +523,19 @@ public class GameMaster {
                 } else {
                     msg.put("status", "OK");
                 }
-                for (Field field: fieldList) {
-                    jsonArray.add(field.getJson());
+                for (Field field :fieldList)
+                {
+                    JSONObject positionJSONObject = new JSONObject();
+                    JSONObject fieldJSONObject = new JSONObject();
+                    positionJSONObject.put("x", field.position.x);
+                    positionJSONObject.put("y", field.position.y);
+                    fieldJSONObject.put("position",positionJSONObject);
+                    fieldJSONObject.put("cell",field.cell.getJson());
+                    jsonArray.add(fieldJSONObject);
                 }
+
                 msg.put("fields", jsonArray);
+
                 return msg;
 
             default:
