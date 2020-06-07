@@ -78,6 +78,14 @@ public class GameMaster {
     public void startGame() throws IOException {
         this.placePlayers();
         PlayerDTO playerDTO;
+        JSONArray jsonArrayBlueGuids = new JSONArray();
+        JSONArray jsonArrayRedGuids = new JSONArray();
+        for (UUID uuid : teamBlueGuids) {
+            jsonArrayBlueGuids.add(uuid.toString());
+        }
+        for (UUID uuid : teamRedGuids) {
+            jsonArrayRedGuids.add(uuid.toString());
+        }
         for (UUID player : connectedPlayers) {
             JSONObject jsonObject = new JSONObject();
             JSONObject positionJsonObject = new JSONObject();
@@ -88,6 +96,11 @@ public class GameMaster {
             jsonObject.put("team", playerDTO.playerTeamColor.toString());
             jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
             jsonObject.put("teamSize", teamBlueGuids.size());
+            if (playerDTO.getPlayerTeamColor() == TeamColor.Blue) {
+                jsonObject.put("teamGuids", jsonArrayBlueGuids);
+            } else {
+                jsonObject.put("teamGuids", jsonArrayRedGuids);
+            }
             positionJsonObject.put("x", playerDTO.playerPosition.x);
             positionJsonObject.put("y", playerDTO.playerPosition.y);
             jsonObject.put("position", positionJsonObject);
@@ -511,14 +524,7 @@ public class GameMaster {
                     msg.put("status", "OK");
                 }
                 for (Field field: fieldList) {
-                    JSONObject fieldJSONObject = new JSONObject();
-                    JSONObject positionJSONObject = new JSONObject();
-                    JSONObject cellJSONObject = new JSONObject();
-                    positionJSONObject.put("x", field.position.x);
-                    positionJSONObject.put("y", field.position.y);
-                    fieldJSONObject.put("cell", field.cell.getJson());
-                    fieldJSONObject.put("position",positionJSONObject);
-                    jsonArray.add(fieldJSONObject);
+                    jsonArray.add(field.getJson());
                 }
                 msg.put("fields", jsonArray);
                 return msg;
