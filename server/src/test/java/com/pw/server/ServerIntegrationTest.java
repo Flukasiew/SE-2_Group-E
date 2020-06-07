@@ -26,7 +26,7 @@ public class ServerIntegrationTest {
 
 	private CommunicationServer communicationServer;
 
-	private Config config = Config.create();
+	private Config config = new Config();
 	private String host = config.getIpAddress();
 	private int port = config.getPortNumber();
 

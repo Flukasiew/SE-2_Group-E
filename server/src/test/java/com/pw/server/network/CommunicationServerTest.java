@@ -1,23 +1,5 @@
 package com.pw.server.network;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pw.common.dto.GameMessageEndDTO;
-import com.pw.common.model.Action;
-import com.pw.common.model.GameEndResult;
-import com.pw.server.factory.Factory;
-import com.pw.server.model.Config;
-import com.pw.server.model.PlayerMessage;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -27,13 +9,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pw.common.dto.GameMessageEndDTO;
+import com.pw.common.model.Action;
+import com.pw.common.model.GameEndResult;
+import com.pw.server.factory.Factory;
+import com.pw.server.model.Config;
+import com.pw.server.model.PlayerMessage;
+
 public class CommunicationServerTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private CommunicationServer communicationServer;
     private String endMessage = MAPPER.writeValueAsString(new GameMessageEndDTO(Action.end, GameEndResult.Blue));
 
-    private Config config = Config.create();
+    private Config config = new Config();
 
     @Mock
     private Factory factory;

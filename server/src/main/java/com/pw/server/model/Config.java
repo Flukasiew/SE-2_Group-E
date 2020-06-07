@@ -1,14 +1,17 @@
 package com.pw.server.model;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pw.server.ServerApp;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
@@ -22,16 +25,14 @@ public class Config {
 
 	private Integer retriesLimit = 5;
 
-	private Config() {
-	}
-
-	public static Config create() {
+	public static Config createFrom(String filename) {
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
-			return mapper.readValue(ServerApp.class.getClassLoader().getResource("server_config.json"), Config.class);
+			LOGGER.info("Reading config file from {} ...", filename);
+			return mapper.readValue(new File(filename), Config.class);
 		} catch (Exception e) {
-			LOGGER.info("Cannot read config file, using default values", e);
+			LOGGER.info("Cannot read config file, using default values..", e);
 		}
 
 		return new Config();

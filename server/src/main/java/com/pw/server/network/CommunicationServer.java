@@ -57,6 +57,8 @@ public class CommunicationServer {
 		this.portNumber = config.getPortNumber();
 		this.ipAddress = config.getIpAddress();
 		this.config = config;
+
+		LOGGER.info("Server initialized with {}", config.toString());
 	}
 
 	public void listen() {

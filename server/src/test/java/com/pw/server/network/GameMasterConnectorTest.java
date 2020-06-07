@@ -1,18 +1,13 @@
 package com.pw.server.network;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pw.common.dto.GameSetupStatusDTO;
-import com.pw.common.model.Action;
-import com.pw.common.model.GameSetupStatus;
-import com.pw.server.exception.GameMasterSetupException;
-import com.pw.server.model.Config;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.mockito.Mock;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -21,18 +16,18 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.BlockingQueue;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.pw.server.exception.GameMasterSetupException;
+import com.pw.server.model.Config;
 
 public class GameMasterConnectorTest {
 
     private GameMasterConnector gameMasterConnector;
 
-    private Config config = Config.create();
+    private Config config = new Config();
 
     @Mock
     private ServerSocket serverSocket;

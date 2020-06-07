@@ -1,15 +1,16 @@
 package com.pw.server.network;
 
-import lombok.Getter;
-import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import lombok.Getter;
+import lombok.SneakyThrows;
 
 @Getter
 public class GameMasterReader extends Thread {
@@ -52,5 +53,6 @@ public class GameMasterReader extends Thread {
         } catch (IOException e) {
             LOGGER.error("Unable to close game master reader", e);
         }
+        LOGGER.info("Game master reader stopped");
     }
 }
