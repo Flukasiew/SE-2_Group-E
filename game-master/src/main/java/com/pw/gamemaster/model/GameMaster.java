@@ -185,7 +185,7 @@ public class GameMaster {
             // play actual game
             startGame();
             timer = System.currentTimeMillis();
-            while (!(redWin = board.checkWinCondition(TeamColor.RED)) && !(blueWin = board.checkWinCondition(TeamColor.BLUE)) && (timeE = System.currentTimeMillis() - timer < this.configuration.gameMsgTimeLimit)) {
+            while (!(redWin = board.checkWinCondition(TeamColor.Red)) && !(blueWin = board.checkWinCondition(TeamColor.Blue)) && (timeE = System.currentTimeMillis() - timer < this.configuration.gameMsgTimeLimit)) {
                 msg = simpleClient.receiveMessage();
                 if (msg != null && !msg.isEmpty()) {
                     LOGGER.info("Message received", msg);
@@ -200,10 +200,10 @@ public class GameMaster {
             }
             LOGGER.info("Play game loop done");
             if (blueWin) {
-                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.BLUE);
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.Blue);
                 LOGGER.info("Blue team has won");
             } else if (redWin) {
-                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.RED);
+                gameMessageEndDTO = new GameMessageEndDTO(Action.end, GameEndResult.Red);
                 LOGGER.info("Red team has won");
             } else {
                 LOGGER.warn("No winner has been decided");
@@ -310,7 +310,7 @@ public class GameMaster {
                 }
                 for (int j = 0; j < this.configuration.boardTaskHeight + this.configuration.boardGoalHeight; j++) {
                     PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
-                    tmp.playerTeamColor = TeamColor.BLUE;
+                    tmp.playerTeamColor = TeamColor.Blue;
                     if (bluePlayersToPlace <= 0) {
                         break;
                     }
@@ -339,7 +339,7 @@ public class GameMaster {
                 }
                 for (int j = this.board.boardHeight - 1; j >= 0; j--) {
                     PlayerDTO tmp = new PlayerDTO(currentUuid, TeamRole.MEMBER, null);
-                    tmp.playerTeamColor = TeamColor.RED;
+                    tmp.playerTeamColor = TeamColor.Red;
                     if (redPlayersToPlace <= 0) {
                         break;
                     }

@@ -222,7 +222,7 @@ public class Player {
         		e.printStackTrace();
         	}
         //else if(board.cellsGrid[position.x][position.y].getCellState() == Cell.CellState.GOAL && piece==true)
-        else if(team.color==TeamColor.BLUE&&position.y<board.goalAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
+        else if(team.color==TeamColor.Blue&&position.y<board.goalAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
             try{
             	placePiece();
             	lastdisc = !lastdisc;
@@ -230,7 +230,7 @@ public class Player {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(team.color==TeamColor.RED&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
+        else if(team.color==TeamColor.Red&&position.y>=board.goalAreaHeight+board.taskAreaHeight&&board.cellsGrid[position.x][position.y].getCellState()==Cell.CellState.UNKNOWN&&piece==true)
             try{
             	placePiece();
             	lastdisc = !lastdisc;
@@ -246,7 +246,7 @@ public class Player {
             	LOGGER.error(e.toString());
             	e.printStackTrace();
             }
-        else if(team.color==TeamColor.BLUE&&position.y>=board.goalAreaHeight&&lastAction != ActionType.DISCOVER)
+        else if(team.color==TeamColor.Blue&&position.y>=board.goalAreaHeight&&lastAction != ActionType.DISCOVER)
         	try {
         		discover();
         		counter++;
@@ -255,7 +255,7 @@ public class Player {
         		LOGGER.error(e.toString());
         		e.printStackTrace();
         	}
-        else if(team.color==TeamColor.RED&&position.y<board.goalAreaHeight+board.taskAreaHeight&&lastAction != ActionType.DISCOVER)
+        else if(team.color==TeamColor.Red&&position.y<board.goalAreaHeight+board.taskAreaHeight&&lastAction != ActionType.DISCOVER)
         	try {
         		discover();
         		counter++;
@@ -370,7 +370,7 @@ public class Player {
         	cellToMove = minDistance();
         	if(cellToMove[0]==-1)
         	{
-        		if(team.color==TeamColor.BLUE)
+        		if(team.color==TeamColor.Blue)
         		{
         			return Position.Direction.DOWN;
         		}
@@ -386,7 +386,7 @@ public class Player {
             return Position.Direction.RIGHT;
         else if(cellToMove[0] < position.x)
             return Position.Direction.LEFT;
-        else if(team.color == TeamColor.BLUE)
+        else if(team.color == TeamColor.Blue)
         {
 	        if(cellToMove[1] > position.y)
 	            return Position.Direction.DOWN;
@@ -496,7 +496,7 @@ public class Player {
         int[] goalCell = {-1, -1};
         int x = 0, y = 0;
 
-        if(team.color == TeamColor.BLUE)
+        if(team.color == TeamColor.Blue)
         {
         	for(y = 0; y < board.goalAreaHeight; y++)
         	{
@@ -511,7 +511,7 @@ public class Player {
                     }
         	}
         }
-        else if(team.color == TeamColor.RED)
+        else if(team.color == TeamColor.Red)
         {
         	for(y=board.goalAreaHeight+board.taskAreaHeight; y<board.boardHeight; y++)
         	{
@@ -556,12 +556,12 @@ public class Player {
         	LOGGER.info("Cannot move down");
             return false;
         }
-        if(team.color == TeamColor.BLUE&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
+        if(team.color == TeamColor.Blue&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
         {
         	LOGGER.info("Approached red goal area, cannot move down");
             return false;
         }
-        if(team.color == TeamColor.RED&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        if(team.color == TeamColor.Red&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
         {
         	LOGGER.info("Approached blue goal area, cannot move down");
             return false;
@@ -598,11 +598,11 @@ public class Player {
             {
                 lastmsg = action;
                 on = false;
-                if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+                if(team.getColor()==TeamColor.Blue&&((String)response.get("result")).equals("Blue"))
                 {
                     LOGGER.info("We won!");
                 }
-                else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+                else if(team.getColor()==TeamColor.Red&&((String)response.get("result")).equals("Red"))
                 {
                     LOGGER.info("We won!");
                 }
@@ -610,45 +610,47 @@ public class Player {
                     LOGGER.info("We lost :(");
                 return;
             }
-            JSONObject newPosition = (JSONObject)response.get("position");
-            position = new Position(((Long)newPosition.get("x")).intValue(), ((Long)newPosition.get("y")).intValue());
-
-            JSONArray fields = (JSONArray)response.get("fields");
-
-            List<Field> fieldsList = new ArrayList<Field>();
-            Cell tmpCell;
-            Iterator iterator = fields.iterator();
-            while (iterator.hasNext()){
-                tmpCell = new Cell();
-                JSONObject jsonObject = (JSONObject)iterator.next();
-                JSONObject jsonCell = (JSONObject)jsonObject.get("cell");
-                if (jsonCell.get("playerGuid") != null) {
-                    tmpCell.setPlayerGuids(UUID.fromString((String)jsonCell.get("playerGuid")));
-                }
-                tmpCell.setDistance(((Long)jsonCell.get("distance")).intValue());
-                tmpCell.setCellState(CellState.valueOf((String)jsonCell.get("cellState")));
-                fieldsList.add(new Field(new Position(((Long)jsonObject.get("x")).intValue(), ((Long)jsonObject.get("y")).intValue()), tmpCell));
-            }
-
-
-
-            String stat = (String)response.get("status");
-            if(stat.equals("OK"))
+            else if(action.equals("discover"))
             {
-                posx.add(position.x);
-                posy.add(position.y);
-                for(Field f : fieldsList)
+            	JSONObject newPosition = (JSONObject)response.get("position");
+                position = new Position(((Long)newPosition.get("x")).intValue(), ((Long)newPosition.get("y")).intValue());
+
+                JSONArray fields = (JSONArray)response.get("fields");
+
+                List<Field> fieldsList = new ArrayList<Field>();
+                Cell tmpCell;
+                Iterator iterator = fields.iterator();
+                while (iterator.hasNext()){
+                    tmpCell = new Cell();
+                    JSONObject jsonObject = (JSONObject)iterator.next();
+                    JSONObject jsonCell = (JSONObject)jsonObject.get("cell");
+                    if (jsonCell.get("playerGuid") != null) {
+                        tmpCell.setPlayerGuids(UUID.fromString((String)jsonCell.get("playerGuid")));
+                    }
+                    tmpCell.setDistance(((Long)jsonCell.get("distance")).intValue());
+                    tmpCell.setCellState(CellState.valueOf((String)jsonCell.get("cellState")));
+                    fieldsList.add(new Field(new Position(((Long)jsonObject.get("x")).intValue(), ((Long)jsonObject.get("y")).intValue()), tmpCell));
+                }
+
+                String stat = (String)response.get("status");
+                if(stat.equals("OK"))
                 {
-                    if(f.position.y>=board.goalAreaHeight&&f.position.y<board.goalAreaHeight+board.taskAreaHeight)
-                        board.updateField(f);
+                    posx.add(position.x);
+                    posy.add(position.y);
+                    for(Field f : fieldsList)
+                    {
+                        if(f.position.y>=board.goalAreaHeight&&f.position.y<board.goalAreaHeight+board.taskAreaHeight)
+                            board.updateField(f);
+                    }
+                    LOGGER.info("Discovered");
                 }
-                LOGGER.info("Discovered");
+                else
+                {
+                    LOGGER.info("Discovering failed");
+                }
+                lastAction = ActionType.DISCOVER;
             }
-            else
-            {
-                LOGGER.info("Discovering failed");
-            }
-            lastAction = ActionType.DISCOVER;
+            
         }
     }
     private void move(Position.Direction direction) throws ParseException, IOException{
@@ -657,6 +659,21 @@ public class Player {
 	        JSONObject message = new JSONObject();
 	        message.put("action", "move");
 	        message.put("playerGuid",playerGuid.toString());
+	        switch(direction)
+	        {
+	        case UP:
+	        	message.put("direction", "Up");
+	        	break;
+	        case DOWN:
+	        	message.put("direction", "Down");
+	        	break;
+	        case LEFT:
+	        	message.put("direction", "Left");
+	        	break;
+	        case RIGHT:
+	        	message.put("direction", "Right");
+	        	break;
+	        }
 	        message.put("direction", direction.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
@@ -665,7 +682,6 @@ public class Player {
 	        {
 	        	msg = client.receiveMessage();
 	        }
-	        
 	        LOGGER.info("Received move status");
 	        JSONObject response = (JSONObject)parser.parse(msg);
 	        String action = (String)response.get("action");
@@ -673,11 +689,11 @@ public class Player {
 	        {
 	        	lastmsg = action;
 	        	on = false;
-	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+	        	if(team.getColor()==TeamColor.Blue&&((String)response.get("result")).equals("Blue"))
             	{
             		LOGGER.info("We won!");
             	}
-	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	else if(team.getColor()==TeamColor.Red&&((String)response.get("result")).equals("Red"))
 	        	{
 	        		LOGGER.info("We won!");
 	        	}
@@ -719,11 +735,11 @@ public class Player {
 	        {
 	        	lastmsg = action;
 	        	on = false;
-	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+	        	if(team.getColor()==TeamColor.Blue&&((String)response.get("result")).equals("Blue"))
             	{
             		LOGGER.info("We won!");
             	}
-	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	else if(team.getColor()==TeamColor.Red&&((String)response.get("result")).equals("Red"))
 	        	{
 	        		LOGGER.info("We won!");
 	        	}
@@ -766,11 +782,11 @@ public class Player {
 	        {
 	        	lastmsg = action;
 	        	on = false;
-	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+	        	if(team.getColor()==TeamColor.Blue&&((String)response.get("result")).equals("Blue"))
             	{
             		LOGGER.info("We won!");
             	}
-	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	else if(team.getColor()==TeamColor.Red&&((String)response.get("result")).equals("Red"))
 	        	{
 	        		LOGGER.info("We won!");
 	        	}
@@ -823,11 +839,11 @@ public class Player {
 	        {
 	        	lastmsg = action;
 	        	on = false;
-	        	if(team.getColor()==TeamColor.BLUE&&((String)response.get("result")).equals("BLUE"))
+	        	if(team.getColor()==TeamColor.Blue&&((String)response.get("result")).equals("Blue"))
             	{
             		LOGGER.info("We won!");
             	}
-	        	else if(team.getColor()==TeamColor.RED&&((String)response.get("result")).equals("RED"))
+	        	else if(team.getColor()==TeamColor.Red&&((String)response.get("result")).equals("Red"))
 	        	{
 	        		LOGGER.info("We won!");
 	        	}

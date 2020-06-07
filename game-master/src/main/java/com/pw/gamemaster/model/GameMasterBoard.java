@@ -42,7 +42,7 @@ public class GameMasterBoard extends Board {
 //        }
         else
         {
-            if (playerDTO.playerTeamColor == TeamColor.BLUE)
+            if (playerDTO.playerTeamColor == TeamColor.Blue)
             {
                 if (playerDTO.playerPosition.getY() < this.boardHeight - this.goalAreaHeight)
                 {
@@ -156,7 +156,7 @@ public class GameMasterBoard extends Board {
     }
 
     public boolean checkWinCondition(TeamColor teamColor) {
-        if(teamColor == TeamColor.BLUE) {
+        if(teamColor == TeamColor.Blue) {
             for(int i=0;i<this.boardWidth;i++)
             {
                 for(int j=0;j<this.goalAreaHeight;j++)

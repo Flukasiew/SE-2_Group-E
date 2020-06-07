@@ -35,10 +35,10 @@ public class Team {
     
     public void setColor(String color)
     {
-    	if(TeamColor.BLUE.toString().equals(color))
-    		this.color = TeamColor.BLUE;
-    	else if(TeamColor.RED.toString().equals(color))
-    		this.color = TeamColor.RED;
+    	if(TeamColor.Blue.toString().equals(color))
+    		this.color = TeamColor.Blue;
+    	else if(TeamColor.Red.toString().equals(color))
+    		this.color = TeamColor.Red;
     }
     
     public void setRole(String role)

@@ -37,11 +37,11 @@ class GameMasterBoardTest {
         Position ret;
         PlayerDTO player_blue = new PlayerDTO();
         player_blue.setPlayerGuid(UUID.randomUUID());
-        player_blue.setPlayerTeamColor(TeamColor.BLUE);
+        player_blue.setPlayerTeamColor(TeamColor.Blue);
 
         PlayerDTO player_red = new PlayerDTO();
         player_red.setPlayerGuid(UUID.randomUUID());
-        player_red.setPlayerTeamColor(TeamColor.RED);
+        player_red.setPlayerTeamColor(TeamColor.Red);
 
         //Within common space
         player_blue.setPosition(new Position(5,5));
@@ -134,11 +134,11 @@ class GameMasterBoardTest {
         Position ret;
         PlayerDTO player_blue = new PlayerDTO();
         player_blue.setPlayerGuid(UUID.randomUUID());
-        player_blue.setPlayerTeamColor(TeamColor.BLUE);
+        player_blue.setPlayerTeamColor(TeamColor.Blue);
 
         PlayerDTO player_red = new PlayerDTO();
         player_red.setPlayerGuid(UUID.randomUUID());
-        player_red.setPlayerTeamColor(TeamColor.RED);
+        player_red.setPlayerTeamColor(TeamColor.Red);
 
 
         player_blue.setPosition(new Position(11,19));
@@ -182,12 +182,12 @@ class GameMasterBoardTest {
         PlayerDTO player_blue = new PlayerDTO();
         player_blue.setPlayerGuid(UUID.randomUUID());
         player_blue.setPosition(new Position(7,8));
-        player_blue.setPlayerTeamColor(TeamColor.BLUE);
+        player_blue.setPlayerTeamColor(TeamColor.Blue);
 
         PlayerDTO player_red = new PlayerDTO();
         player_red.setPlayerGuid(UUID.randomUUID());
         player_red.setPosition(new Position(7,8));
-        player_red.setPlayerTeamColor(TeamColor.RED);
+        player_red.setPlayerTeamColor(TeamColor.Red);
 
 
         gameMasterBoard.cellsGrid[8][8].setPlayerGuids(UUID.randomUUID());
@@ -208,11 +208,11 @@ class GameMasterBoardTest {
         Cell.CellState ret;
         PlayerDTO player_blue = new PlayerDTO();
         player_blue.setPlayerGuid(UUID.randomUUID());
-        player_blue.setPlayerTeamColor(TeamColor.BLUE);
+        player_blue.setPlayerTeamColor(TeamColor.Blue);
 
         PlayerDTO player_red = new PlayerDTO();
         player_red.setPlayerGuid(UUID.randomUUID());
-        player_red.setPlayerTeamColor(TeamColor.RED);
+        player_red.setPlayerTeamColor(TeamColor.Red);
 
         gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.PIECE;
         ret = gameMasterBoard.takePiece(new Position(5,5));
@@ -280,11 +280,11 @@ class GameMasterBoardTest {
         GameMasterBoard gameMasterBoard = new GameMasterBoard(16,4,16);
         PlayerDTO player_blue = new PlayerDTO();
         player_blue.setPlayerGuid(UUID.randomUUID());
-        player_blue.setPlayerTeamColor(TeamColor.BLUE);
+        player_blue.setPlayerTeamColor(TeamColor.Blue);
 
         PlayerDTO player_red = new PlayerDTO();
         player_red.setPlayerGuid(UUID.randomUUID());
-        player_red.setPlayerTeamColor(TeamColor.RED);
+        player_red.setPlayerTeamColor(TeamColor.Red);
 
 
         gameMasterBoard.cellsGrid[5][5].cellState = Cell.CellState.PIECE;
@@ -319,11 +319,11 @@ class GameMasterBoardTest {
         Position pos;
         PlayerDTO player_blue = new PlayerDTO();
         player_blue.setPlayerGuid(UUID.randomUUID());
-        player_blue.setPlayerTeamColor(TeamColor.BLUE);
+        player_blue.setPlayerTeamColor(TeamColor.Blue);
 
         PlayerDTO player_red = new PlayerDTO();
         player_red.setPlayerGuid(UUID.randomUUID());
-        player_red.setPlayerTeamColor(TeamColor.RED);
+        player_red.setPlayerTeamColor(TeamColor.Red);
 
 
         //Occupied spot
@@ -356,7 +356,7 @@ class GameMasterBoardTest {
         PlayerDTO dto = new PlayerDTO();
 
         //becouse Blue has zero goals hence all are filled
-        boolean ret = gameMasterBoard.checkWinCondition(TeamColor.BLUE);
+        boolean ret = gameMasterBoard.checkWinCondition(TeamColor.Blue);
         assertEquals(true,ret);
 
 
@@ -372,24 +372,24 @@ class GameMasterBoardTest {
         dto.setPosition(new Position(2,3));
         gameMasterBoard.placePiece(dto);
         //because not all goal filled
-        ret = gameMasterBoard.checkWinCondition(TeamColor.BLUE);
+        ret = gameMasterBoard.checkWinCondition(TeamColor.Blue);
         assertEquals(false,ret);
 
         dto.setPosition(new Position(1,0));
         gameMasterBoard.placePiece(dto);
         //all goals are filled
-        ret = gameMasterBoard.checkWinCondition(TeamColor.BLUE);
+        ret = gameMasterBoard.checkWinCondition(TeamColor.Blue);
         assertEquals(true,ret);
 
         //becouse red has zero goals hence all are filled
-        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        ret = gameMasterBoard.checkWinCondition(TeamColor.Red);
         assertEquals(true,ret);
 
         gameMasterBoard.setGoal(new Position(13,22));
         gameMasterBoard.setGoal(new Position(10,21));
         gameMasterBoard.setGoal(new Position(1,21));
         //because not all goals are filled
-        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        ret = gameMasterBoard.checkWinCondition(TeamColor.Red);
         assertEquals(false,ret);
 
         dto.setPosition(new Position(13,22));
@@ -397,13 +397,13 @@ class GameMasterBoardTest {
         dto.setPosition(new Position(10,21));
         gameMasterBoard.placePiece(dto);
         //because not all goals are filled
-        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        ret = gameMasterBoard.checkWinCondition(TeamColor.Red);
         assertEquals(false,ret);
 
         dto.setPosition(new Position(1,21));
         gameMasterBoard.placePiece(dto);
         //because all goals are filled
-        ret = gameMasterBoard.checkWinCondition(TeamColor.RED);
+        ret = gameMasterBoard.checkWinCondition(TeamColor.Red);
         assertEquals(true,ret);
     }
 
