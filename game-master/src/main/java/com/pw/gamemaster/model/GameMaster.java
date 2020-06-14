@@ -78,6 +78,14 @@ public class GameMaster {
     public void startGame() throws IOException {
         this.placePlayers();
         PlayerDTO playerDTO;
+        JSONArray jsonArrayBlueGuids = new JSONArray();
+        JSONArray jsonArrayRedGuids = new JSONArray();
+        for (UUID uuid : teamBlueGuids) {
+            jsonArrayBlueGuids.add(uuid.toString());
+        }
+        for (UUID uuid : teamRedGuids) {
+            jsonArrayRedGuids.add(uuid.toString());
+        }
         for (UUID player : connectedPlayers) {
             JSONObject jsonObject = new JSONObject();
             JSONObject positionJsonObject = new JSONObject();
@@ -88,6 +96,11 @@ public class GameMaster {
             jsonObject.put("team", playerDTO.playerTeamColor.toString());
             jsonObject.put("teamRole", playerDTO.playerTeamRole.toString());
             jsonObject.put("teamSize", teamBlueGuids.size());
+            if (playerDTO.getPlayerTeamColor() == TeamColor.Blue) {
+                jsonObject.put("teamGuids", jsonArrayBlueGuids);
+            } else {
+                jsonObject.put("teamGuids", jsonArrayRedGuids);
+            }
             positionJsonObject.put("x", playerDTO.playerPosition.x);
             positionJsonObject.put("y", playerDTO.playerPosition.y);
             jsonObject.put("position", positionJsonObject);
@@ -422,17 +435,17 @@ public class GameMaster {
                 String directionString = (String)msg.get("direction");
                 Position.Direction direction;
                 switch (directionString) {
-                    case "UP":
-                        direction = Position.Direction.UP;
+                    case "Up":
+                        direction = Position.Direction.Up;
                         break;
-                    case "DOWN":
-                        direction = Position.Direction.DOWN;
+                    case "Down":
+                        direction = Position.Direction.Down;
                         break;
-                    case "LEFT":
-                        direction = Position.Direction.LEFT;
+                    case "Left":
+                        direction = Position.Direction.Left;
                         break;
-                    case "RIGHT":
-                        direction = Position.Direction.RIGHT;
+                    case "Right":
+                        direction = Position.Direction.Right;
                         break;
                     default:
                         throw new InvalidMoveException("Unexpected value: " + directionString); // implement new exception later on
@@ -448,7 +461,7 @@ public class GameMaster {
                     status = "OK";
                     positionJSON.put("x", newPosition.x);
                     positionJSON.put("y", newPosition.y);
-                    msg.put("position", positionJSON.toJSONString());
+                    msg.put("position", positionJSON);
                 }
                 msg.put("status", status);
                 return msg;
@@ -510,10 +523,19 @@ public class GameMaster {
                 } else {
                     msg.put("status", "OK");
                 }
-                for (Field field: fieldList) {
-                    jsonArray.add(field.getJson());
+                for (Field field :fieldList)
+                {
+                    JSONObject positionJSONObject = new JSONObject();
+                    JSONObject fieldJSONObject = new JSONObject();
+                    positionJSONObject.put("x", field.position.x);
+                    positionJSONObject.put("y", field.position.y);
+                    fieldJSONObject.put("position",positionJSONObject);
+                    fieldJSONObject.put("cell",field.cell.getJson());
+                    jsonArray.add(fieldJSONObject);
                 }
+
                 msg.put("fields", jsonArray);
+
                 return msg;
 
             default:

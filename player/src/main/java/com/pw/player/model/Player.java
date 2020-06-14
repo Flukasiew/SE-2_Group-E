@@ -372,10 +372,10 @@ public class Player {
         	{
         		if(team.color==TeamColor.Blue)
         		{
-        			return Position.Direction.DOWN;
+        			return Position.Direction.Down;
         		}
         		else
-        			return Position.Direction.UP;
+        			return Position.Direction.Up;
         	}
         	
             //cellToMove[0] = 0 + (int)(Math.random() * ((board.boardWidth - 0) + 1));
@@ -383,24 +383,24 @@ public class Player {
         }
 
         if(cellToMove[0] > position.x)
-            return Position.Direction.RIGHT;
+            return Position.Direction.Right;
         else if(cellToMove[0] < position.x)
-            return Position.Direction.LEFT;
+            return Position.Direction.Left;
         else if(team.color == TeamColor.Blue)
         {
 	        if(cellToMove[1] > position.y)
-	            return Position.Direction.DOWN;
+	            return Position.Direction.Down;
 	        //else if(cellToMove[1]>position.y)
 	        else
-	            return Position.Direction.UP;
+	            return Position.Direction.Up;
         }
         else
         {
         	if(cellToMove[1] < position.y)
-	            return Position.Direction.UP;
+	            return Position.Direction.Up;
 	        //else if(cellToMove[1]>position.y)
         	else
-	            return Position.Direction.DOWN;
+	            return Position.Direction.Down;
         }
     }
     
@@ -536,32 +536,32 @@ public class Player {
         int x = position.x;
         int y = position.y;
 
-        if(x<=0&&dir==Position.Direction.LEFT)
+        if(x<=0&&dir==Position.Direction.Left)
         {
         	LOGGER.info("Cannot move left");
             return false;
         }
-        if(x>=board.boardWidth-1&&dir==Position.Direction.RIGHT)
+        if(x>=board.boardWidth-1&&dir==Position.Direction.Right)
         {
         	LOGGER.info("Cannot move right");
             return false;
         }
-        if(y<=0&&dir==Position.Direction.UP)
+        if(y<=0&&dir==Position.Direction.Up)
         {
         	LOGGER.info("Cannot move up");
             return false;
         }
-        if(y>=board.boardHeight-1&&dir==Position.Direction.DOWN)
+        if(y>=board.boardHeight-1&&dir==Position.Direction.Down)
         {
         	LOGGER.info("Cannot move down");
             return false;
         }
-        if(team.color == TeamColor.Blue&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.DOWN)
+        if(team.color == TeamColor.Blue&&y>=board.taskAreaHeight+board.goalAreaHeight-1&&dir==Position.Direction.Down)
         {
         	LOGGER.info("Approached red goal area, cannot move down");
             return false;
         }
-        if(team.color == TeamColor.Red&&y<=board.goalAreaHeight&&dir==Position.Direction.UP)
+        if(team.color == TeamColor.Red&&y<=board.goalAreaHeight&&dir==Position.Direction.Up)
         {
         	LOGGER.info("Approached blue goal area, cannot move down");
             return false;
@@ -629,7 +629,8 @@ public class Player {
                     }
                     tmpCell.setDistance(((Long)jsonCell.get("distance")).intValue());
                     tmpCell.setCellState(CellState.valueOf((String)jsonCell.get("cellState")));
-                    fieldsList.add(new Field(new Position(((Long)jsonObject.get("x")).intValue(), ((Long)jsonObject.get("y")).intValue()), tmpCell));
+                    JSONObject jsonField = (JSONObject)jsonObject.get("position");
+                    fieldsList.add(new Field(new Position(((Long)jsonField.get("x")).intValue(), ((Long)jsonField.get("y")).intValue()), tmpCell));
                 }
 
                 String stat = (String)response.get("status");
@@ -661,20 +662,20 @@ public class Player {
 	        message.put("playerGuid",playerGuid.toString());
 	        switch(direction)
 	        {
-	        case UP:
+	        case Up:
 	        	message.put("direction", "Up");
 	        	break;
-	        case DOWN:
+	        case Down:
 	        	message.put("direction", "Down");
 	        	break;
-	        case LEFT:
+	        case Left:
 	        	message.put("direction", "Left");
 	        	break;
-	        case RIGHT:
+	        case Right:
 	        	message.put("direction", "Right");
 	        	break;
 	        }
-	        message.put("direction", direction.toString());
+	        //message.put("direction", direction.toString());
 	        client.sendMessage(message.toJSONString());
 	        JSONParser parser = new JSONParser();
 	        String msg = null;

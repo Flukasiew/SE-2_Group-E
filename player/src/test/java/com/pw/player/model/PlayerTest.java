@@ -148,7 +148,7 @@ public class PlayerTest {
         tester.put("status", "OK");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.RIGHT);
+        player.testAction(ActionType.MOVE, Position.Direction.Right);
         assertEquals(new Position(5,6).x, player.position.x);
     }
 
@@ -164,7 +164,7 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.RIGHT);
+        player.testAction(ActionType.MOVE, Position.Direction.Right);
         assertEquals(new Position(9,6).x, player.position.x);
     }
 
@@ -180,7 +180,7 @@ public class PlayerTest {
         tester.put("status", "OK");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.LEFT);
+        player.testAction(ActionType.MOVE, Position.Direction.Left);
         assertEquals(new Position(3,6).x, player.position.x);
     }
 
@@ -196,7 +196,7 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.LEFT);
+        player.testAction(ActionType.MOVE, Position.Direction.Left);
         assertEquals(new Position(0,6).x, player.position.x);
     }
 
@@ -212,7 +212,7 @@ public class PlayerTest {
         tester.put("status", "OK");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.UP);
+        player.testAction(ActionType.MOVE, Position.Direction.Up);
         assertEquals(new Position(3,5).y, player.position.y);
     }
 
@@ -228,7 +228,7 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.UP);
+        player.testAction(ActionType.MOVE, Position.Direction.Up);
         assertEquals(new Position(3,0).y, player.position.y);
     }
 
@@ -244,7 +244,7 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.UP);
+        player.testAction(ActionType.MOVE, Position.Direction.Up);
         assertEquals(new Position(3,4).y, player.position.y);
     }
 
@@ -260,7 +260,7 @@ public class PlayerTest {
         tester.put("status", "OK");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.DOWN);
+        player.testAction(ActionType.MOVE, Position.Direction.Down);
         assertEquals(new Position(3,14).y, player.position.y);
     }
 
@@ -276,7 +276,7 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.DOWN);
+        player.testAction(ActionType.MOVE, Position.Direction.Down);
         assertEquals(new Position(3,15).y, player.position.y);
     }
 
@@ -292,7 +292,7 @@ public class PlayerTest {
         tester.put("status", "DENIED");
         doReturn(tester.toJSONString()).when(client).receiveMessage();
 
-        player.testAction(ActionType.MOVE, Position.Direction.DOWN);
+        player.testAction(ActionType.MOVE, Position.Direction.Down);
         assertEquals(new Position(3,11).y, player.position.y);
     }
 

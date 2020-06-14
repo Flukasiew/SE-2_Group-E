@@ -58,7 +58,7 @@ public class GameMasterBoard extends Board {
             }
             else
             {
-                if (playerDTO.playerPosition.getY()>this.goalAreaHeight) {
+                if (playerDTO.playerPosition.getY()>=this.goalAreaHeight) {
                     {
                         this.cellsGrid[playerDTO.getPosition().getX()][playerDTO.getPosition().getY()].setPlayerGuids(playerDTO.playerGuid);
                         this.cellsGrid[old_pos.getX()][old_pos.getY()].setPlayerGuids(null);
